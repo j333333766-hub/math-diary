@@ -69,8 +69,8 @@
       <div class="bar"><i id="bar" style="width:0%"></i></div>
       <div class="legend">
         <span><i class="dot" style="background:var(--brand-soft);border:1px solid var(--brand)"></i> 쓸 수 있어요</span>
-        <span><i class="dot" style="background:var(--good)"></i> 다 썼어요</span>
-        <span><i class="dot" style="background:transparent;border:1px dashed var(--line)"></i> 수업 전 · 기간 지남</span>
+        <span><i class="dot" style="background:var(--good)"></i> 완료</span>
+        <span><i class="dot" style="background:transparent;border:1px dashed var(--line)"></i> 수업 전 · 지남</span>
       </div>
       <div id="calMsg" class="hide"></div>
     </div>
@@ -392,8 +392,9 @@
       html += '<div class="' + cls + '"><div class="dnum">' + d + '</div>';
       (byDay[ymd] || []).forEach(function (s) {
         var k = s.done ? 'done' : (s.editable ? '' : 'locked');
-        var tag = s.done ? '다 썼어요'
-          : (s.editable ? '쓰기' : (s.ymd > MONTH.today ? '수업 전' : '기간 지남'));
+        // 휴대폰에서 한 칸이 34~45px 밖에 안 된다. 꼬리표가 길면 줄이 접혀 보기 흉하다
+        var tag = s.done ? '완료'
+          : (s.editable ? '쓰기' : (s.ymd > MONTH.today ? '수업 전' : '지남'));
         html += '<button class="slot ' + k + '" data-ymd="' + s.ymd + '" data-perio="' + s.perio + '"' +
                 (s.editable || s.done ? '' : ' disabled') + '>' +
                 s.perio + '교시<span class="subj"> ' + subj + '</span>' +
