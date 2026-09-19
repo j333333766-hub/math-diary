@@ -156,22 +156,42 @@ textarea { min-height: 92px; resize: vertical; line-height: 1.65; }
 .msg-info { background: var(--brand-soft); color: var(--brand-ink); }
 
 /* ── 별점 ── */
-.stars { display: flex; gap: 2px; }
+/* ── 별점 ──
+ * 고르지 않은 별은 **윤곽(☆)** 으로 둔다. 회색 채운 별로 두면 이미 고른 것처럼 보여
+ * 몇 점인지 한눈에 안 들어온다. */
+.stars { display: flex; gap: 1px; }
 .stars button {
   border: none;
   background: none;
-  padding: 4px 5px;
+  padding: 4px 4px;
   min-height: 44px;
-  font-size: 1.85rem;
+  min-width: 40px;
+  font-size: 1.8rem;
   line-height: 1;
   color: var(--ink-faint);
+  transition: transform .12s cubic-bezier(.34, 1.56, .64, 1), color .12s;
 }
-.stars button.on { color: var(--star); }
+.stars button.on { color: var(--star); transform: scale(1.06); }
+.stars button:hover { color: var(--star); }
+
+/* 라벨이 두 줄로 접히면 보기 흉하다 → 좁은 화면에서는 위아래로 쌓는다 */
 .star-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; padding: 6px 0;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 2px; padding: 8px 0;
 }
-.star-row .lab { font-weight: 600; font-size: .92rem; }
+.star-row .lab { font-weight: 700; font-size: .92rem; }
+.star-row .picked {
+  font-size: .78rem; color: var(--star); font-weight: 700;
+  min-height: 1.1em;
+}
+.star-row .picked.empty { color: var(--ink-faint); font-weight: 500; }
+.star-line { display: flex; align-items: center; gap: 10px; width: 100%; }
+@media (min-width: 460px) {
+  .star-row {
+    flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .star-row .lab-wrap { flex: 1; min-width: 0; }
+}
 
 /* ── 위쪽 띠 ── */
 .topbar {
@@ -277,6 +297,12 @@ textarea { min-height: 92px; resize: vertical; line-height: 1.65; }
 
 /* ── 일기 작성 ── */
 .ed-when { font-weight: 800; font-size: 1rem; text-align: right; line-height: 1.25; }
+/* 길게 스크롤해도 어느 수업을 쓰는 중인지 보이게 */
+.topbar.stick {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg); padding: 8px 0; margin: -8px 0 10px;
+}
+textarea.grow { overflow-y: hidden; }
 .hint { font-size: .76rem; color: var(--ink-faint); margin: -4px 0 12px; }
 .counter { text-align: right; font-size: .7rem; color: var(--ink-faint); margin-top: -6px; }
 .sticky {
@@ -285,6 +311,45 @@ textarea { min-height: 92px; resize: vertical; line-height: 1.65; }
 }
 .tip { font-size: .74rem; color: var(--brand-ink); background: var(--brand-soft);
        border-radius: 8px; padding: 7px 10px; margin: -4px 0 10px; }
+
+/* ── 토스트 ── */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px);
+  background: var(--ink); color: var(--card);
+  padding: 12px 20px; border-radius: 999px; font-size: .9rem; font-weight: 700;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .22); z-index: 90;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease;
+  max-width: calc(100vw - 32px); text-align: center;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast.good { background: var(--good); color: #fff; }
+.toast.bad { background: var(--warn); color: #fff; }
+
+/* ── 접히는 안내 ── */
+.tipbox { margin: -4px 0 10px; }
+.tipbox summary {
+  list-style: none; cursor: pointer; font-size: .78rem; font-weight: 700;
+  color: var(--brand-ink); background: var(--brand-soft);
+  border-radius: 8px; padding: 7px 10px; display: flex; gap: 6px; align-items: center;
+}
+.tipbox summary::-webkit-details-marker { display: none; }
+.tipbox summary::after { content: '▾'; margin-left: auto; font-size: .7rem; }
+.tipbox[open] summary::after { content: '▴'; }
+.tipbox .tipbody {
+  font-size: .78rem; color: var(--brand-ink); background: var(--brand-soft);
+  border-radius: 0 0 8px 8px; padding: 2px 10px 10px; margin-top: -4px;
+}
+
+/* ── 빈 상태 ── */
+.empty { text-align: center; padding: 30px 16px; color: var(--ink-soft); }
+.empty .big { font-size: 2.2rem; line-height: 1; margin-bottom: 10px; }
+.empty b { display: block; color: var(--ink); font-size: .98rem; margin-bottom: 4px; }
+.empty span { font-size: .84rem; }
+
+/* ── 뼈대 로딩 ── */
+.skel { border-radius: 10px; background: var(--line); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.skel-row { height: 58px; margin-bottom: 8px; }
 
 /* ── 로딩 ── */
 .loading { text-align: center; padding: 40px 0; color: var(--ink-soft); }
@@ -317,6 +382,7 @@ textarea { min-height: 92px; resize: vertical; line-height: 1.65; }
 .rec .rhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 .rec .rwhen { font-weight: 800; font-size: .92rem; }
 .rec .rstar { font-size: .76rem; color: var(--star); white-space: nowrap; }
+.rec .rstar .off { color: var(--ink-faint); }
 .rec p { margin: 6px 0; font-size: .86rem; white-space: pre-wrap; word-break: break-word; }
 .rec .k {
   display: inline-block; font-size: .7rem; font-weight: 800; color: var(--brand-ink);

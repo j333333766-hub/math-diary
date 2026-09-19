@@ -6,8 +6,12 @@
 <title>수학 일기 · 선생님</title>
 <meta name="description" content="수학 일기 전체 현황과 학생별 기록 — 담당 교사용.">
 <meta name="theme-color" content="#3b5bdb">
-<link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="style.css?v=14">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="wrap wide">
@@ -160,7 +164,7 @@
   </section>
 </div>
 
-<script src="config.js"></script>
+<script src="config.js?v=14"></script>
 <script>
 (function () {
   'use strict';
@@ -168,7 +172,27 @@
   var TOK = null, BOOT = null, YM = null;
   var CLS = null;      // 보고 있는 반 { g, c }
 
+  var NAV = false;
   var VIEWS = ['vLogin', 'vOver', 'vClass', 'vSlot', 'vStudent', 'vNotes', 'vTools', 'vLoading'];
+
+  /* 브라우저 뒤로가기로 한 단계씩 돌아간다 */
+  function pushView(st) {
+    if (NAV) return;
+    try { history.pushState(st, ''); } catch (e) {}
+  }
+  window.addEventListener('popstate', function (ev) {
+    var st = ev.state || {};
+    if (!TOK) return;
+    NAV = true;
+    try {
+      if (st.v === 'class' && st.g) openClass(st.g, st.c, true);
+      else if (st.v === 'slot' && st.g) { CLS = { g: st.g, c: st.c }; openSlot(st.ymd, st.perio, true); }
+      else if (st.v === 'stu' && st.g) { CLS = { g: st.g, c: st.c }; openStudent(st.no, true); }
+      else if (st.v === 'notes') openNotes(false, true);
+      else if (st.v === 'tools') show('vTools');
+      else openOver(true);
+    } finally { setTimeout(function () { NAV = false; }, 0); }
+  });
   function show(id) {
     VIEWS.forEach(function (v) { $(v).classList.toggle('hide', v !== id); });
     window.scrollTo(0, 0);
@@ -256,7 +280,8 @@
   function out() { lsDel('md.ttoken'); TOK = null; location.reload(); }
 
   /* ══════════ 전체 현황 ══════════ */
-  async function openOver() {
+  async function openOver(noPush) {
+    if (!noPush) pushView({ v: 'over', ym: YM });
     show('vLoading');
     var r;
     try { r = await call('tover', { ym: YM }); }
@@ -325,8 +350,9 @@
   }
 
   /* ══════════ 한 반 ══════════ */
-  async function openClass(g, c) {
+  async function openClass(g, c, noPush) {
     CLS = { g: g, c: c };
+    if (!noPush) pushView({ v: 'class', g: g, c: c, ym: YM });
     show('vLoading');
     var r;
     try { r = await call('tgrid', { grade: g, cls: c, ym: YM }); }
@@ -384,7 +410,8 @@
   }
 
   /* ══════════ 한 수업 ══════════ */
-  async function openSlot(ymd, perio) {
+  async function openSlot(ymd, perio, noPush) {
+    if (!noPush) pushView({ v: 'slot', g: CLS.g, c: CLS.c, ymd: ymd, perio: perio });
     show('vLoading');
     var r;
     try { r = await call('tread', { grade: CLS.g, cls: CLS.c, ymd: ymd, perio: perio }); }
@@ -409,7 +436,8 @@
   }
 
   /* ══════════ 한 학생 ══════════ */
-  async function openStudent(no) {
+  async function openStudent(no, noPush) {
+    if (!noPush) pushView({ v: 'stu', g: CLS.g, c: CLS.c, no: no });
     show('vLoading');
     var r;
     try { r = await call('tstu', { grade: CLS.g, cls: CLS.c, no: no }); }
@@ -442,7 +470,8 @@
   }
 
   /* ══════════ 쪽지함 ══════════ */
-  async function openNotes(onlyUnread) {
+  async function openNotes(onlyUnread, noPush) {
+    if (!noPush) pushView({ v: 'notes' });
     show('vLoading');
     var r;
     try { r = await call('tnotes', { onlyUnread: !!onlyUnread }); }
@@ -504,7 +533,7 @@
   $('btnIn').addEventListener('click', login);
   $('pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
   $('btnOut').addEventListener('click', out);
-  $('btnTools').addEventListener('click', function () { show('vTools'); });
+  $('btnTools').addEventListener('click', function () { pushView({ v: 'tools' }); show('vTools'); });
   $('oPrev').addEventListener('click', function () { moveMonth(-1); });
   $('oNext').addEventListener('click', function () { moveMonth(1); });
   $('btnAllNotes').addEventListener('click', function () { openNotes(false); });
@@ -517,10 +546,7 @@
   $('pwGo').addEventListener('click', changePw);
 
   Array.prototype.forEach.call(document.querySelectorAll('.back'), function (b) {
-    b.addEventListener('click', function () {
-      if (b.dataset.to === 'class' && CLS) openClass(CLS.g, CLS.c);
-      else openOver();
-    });
+    b.addEventListener('click', function () { history.back(); });
   });
 
   boot();

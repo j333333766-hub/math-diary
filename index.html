@@ -6,8 +6,17 @@
 <title>수학 일기</title>
 <meta name="description" content="구월중학교 수학 일기 — 수학 수업이 있는 날마다 배운 것과 한 일을 남깁니다.">
 <meta name="theme-color" content="#3b5bdb">
-<link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+<!-- 본문 글꼴. 없으면 맑은 고딕으로 곱게 내려간다(화면이 깨지지 않는다) -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="style.css?v=14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="수학 일기">
+<meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
 <div class="wrap">
@@ -82,7 +91,7 @@
 
   <!-- ══════════ 일기 작성 ══════════ -->
   <section id="ed" class="hide">
-    <div class="topbar">
+    <div class="topbar stick">
       <button id="btnBack">← 달력</button>
       <div class="ed-when" id="edWhen"></div>
     </div>
@@ -90,12 +99,18 @@
       <div id="edLocked" class="msg msg-info hide"></div>
 
       <div class="star-row">
-        <span class="lab">오늘 수업은 어땠나요?</span>
-        <div class="stars" id="starC"></div>
+        <div class="lab-wrap">
+          <div class="lab">오늘 수업은 어땠나요?</div>
+          <div class="picked empty" id="pickC">아직 고르지 않았어요</div>
+        </div>
+        <div class="stars" id="starC" role="group" aria-label="오늘 수업 별점"></div>
       </div>
       <div class="star-row" style="border-top:1px solid var(--line)">
-        <span class="lab">나는 얼마나 적극적이었나요?</span>
-        <div class="stars" id="starM"></div>
+        <div class="lab-wrap">
+          <div class="lab">나는 얼마나 적극적이었나요?</div>
+          <div class="picked empty" id="pickM">아직 고르지 않았어요</div>
+        </div>
+        <div class="stars" id="starM" role="group" aria-label="참여도 별점"></div>
       </div>
 
       <h2>📘 오늘 배운 내용</h2>
@@ -104,8 +119,11 @@
       <div class="counter" id="cLearned"></div>
 
       <h2>🙋 수업 시간의 나의 활동</h2>
-      <p class="tip">내가 <b>직접 한 일</b>을 적어 두면 학기말 생활기록부를 쓸 때 그대로 쓰입니다.
-        맡은 역할, 발표한 것, 친구에게 설명한 것, 끝까지 붙잡고 푼 문제 같은 것을 적어 보세요.</p>
+      <details class="tipbox" id="tipAct">
+        <summary>💡 무엇을 적으면 좋을까요?</summary>
+        <div class="tipbody">내가 <b>직접 한 일</b>을 적어 두면 학기말 생활기록부를 쓸 때 그대로 쓰입니다.
+          맡은 역할, 발표한 것, 친구에게 설명한 것, 끝까지 붙잡고 푼 문제 같은 것을 적어 보세요.</div>
+      </details>
       <textarea id="tActivity" maxlength="2000"
         placeholder="예) 모둠에서 각도기로 재는 역할을 맡아, 잘 모르는 친구에게 재는 방법을 설명해 주었다."></textarea>
       <div class="counter" id="cActivity"></div>
@@ -169,6 +187,8 @@
 
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <!-- ══════════ 쪽지 보내기 ══════════ -->
 <div class="modal hide" id="noteModal">
   <div class="box">
@@ -193,7 +213,7 @@
   </div>
 </div>
 
-<script src="config.js"></script>
+<script src="config.js?v=14"></script>
 <script>
 (function () {
   'use strict';
@@ -207,6 +227,12 @@
   var CUR = null;       // 작성 중인 { ymd, perio, editable }
   var starC = 0, starM = 0;
   var draftTimer = null;
+  var NAV = false;      // 뒤로가기 처리 중에는 history 를 또 쌓지 않는다
+
+  var STAR_WORD = ['아직 고르지 않았어요', '많이 힘들었어요', '조금 어려웠어요',
+                   '보통이었어요', '좋았어요', '아주 좋았어요'];
+  var STAR_WORD_ME = ['아직 고르지 않았어요', '거의 못 했어요', '조금 했어요',
+                      '보통이었어요', '열심히 했어요', '아주 열심히 했어요'];
 
   var FIELDS = [
     { id: 'tLearned',  cnt: 'cLearned',  key: 'learned',  label: '배운 내용' },
@@ -249,6 +275,33 @@
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
     }).replace(/\n/g, '<br>');
   }
+
+  var toastTimer = null;
+  function toast(text, kind) {
+    var t = $('toast');
+    t.textContent = text;
+    t.className = 'toast on' + (kind ? ' ' + kind : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast' + (kind ? ' ' + kind : ''); }, 2400);
+  }
+
+  /* 브라우저 뒤로가기로 화면을 되돌린다 — 휴대폰에서 이게 없으면 앱이 그냥 닫혀 버린다 */
+  function pushView(state) {
+    if (NAV) return;
+    try { history.pushState(state, ''); } catch (e) {}
+  }
+  window.addEventListener('popstate', function (ev) {
+    var st = ev.state || {};
+    NAV = true;
+    try {
+      if (st.v === 'ed' && st.ymd) openEditor(st.ymd, st.perio, true);
+      else if (st.v === 'dash') openDash(true);
+      else if (TOKEN && ME) openCalendar(st.ym || YM, true);
+      else show('login');
+    } finally {
+      setTimeout(function () { NAV = false; }, 0);
+    }
+  });
   function dowOf(ymd) {
     return ['일', '월', '화', '수', '목', '금', '토'][
       new Date(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8)).getDay()];
@@ -356,8 +409,11 @@
   }
 
   /* ══════════ 달력 ══════════ */
-  async function openCalendar(ym) {
+  async function openCalendar(ym, noPush) {
     YM = ym;
+    CUR = null;
+    LOADED = null;
+    if (!noPush) pushView({ v: 'cal', ym: ym });
     show('loading');
     var r;
     try { r = await window.api('month', { token: TOKEN, ym: ym }); }
@@ -426,7 +482,8 @@
   /* ══════════ 일기 작성 ══════════ */
   function draftKey(ymd, perio) { return 'md.draft.' + (ME ? ME.sid : '') + '.' + ymd + '.' + perio; }
 
-  async function openEditor(ymd, perio) {
+  async function openEditor(ymd, perio, noPush) {
+    if (!noPush) pushView({ v: 'ed', ymd: ymd, perio: perio, ym: YM });
     show('loading');
     var r;
     try { r = await window.api('entry', { token: TOKEN, ymd: ymd, perio: perio }); }
@@ -447,8 +504,12 @@
     FIELDS.forEach(function (f) { $(f.id).value = src[f.key] || ''; });
     starC = src.starClass || 0;
     starM = src.starMe || 0;
+    LOADED = { starClass: starC, starMe: starM };
+    FIELDS.forEach(function (f) { LOADED[f.key] = $(f.id).value; });
     paintStars();
     counters();
+    // 안내는 한 번 접으면 계속 접힌 채로 둔다
+    $('tipAct').open = lsGet('md.tip') !== 'off';
     $('draftHint').textContent = useDraft
       ? '⚠ 저장하지 않고 닫은 내용이 남아 있어 되살렸습니다.'
       : (e.savedMs ? '저장됨' + (e.editCnt ? ' · ' + e.editCnt + '번 고쳤어요' : '') : '');
@@ -468,14 +529,15 @@
 
     renderMyNotes(r.notes);
     show('ed');
+    growAll();      // 화면을 보인 뒤에 재야 한다 — 숨어 있으면 scrollHeight 가 0 이다
   }
 
   function paintStars() {
-    [['starC', 'C'], ['starM', 'M']].forEach(function (p) {
+    [['starC', 'C', 'pickC', STAR_WORD], ['starM', 'M', 'pickM', STAR_WORD_ME]].forEach(function (p) {
       var box = $(p[0]);
       if (!box.children.length) {
-        box.innerHTML = '★★★★★'.split('').map(function (_, i) {
-          return '<button type="button" data-v="' + (i + 1) + '" aria-label="' + (i + 1) + '점">★</button>';
+        box.innerHTML = [1, 2, 3, 4, 5].map(function (v) {
+          return '<button type="button" data-v="' + v + '" aria-label="' + v + '점">☆</button>';
         }).join('');
         Array.prototype.forEach.call(box.children, function (b) {
           b.addEventListener('click', function () {
@@ -489,10 +551,34 @@
       }
       var val = (p[1] === 'C') ? starC : starM;
       Array.prototype.forEach.call(box.children, function (b, i) {
-        b.classList.toggle('on', i < val);
+        var on = i < val;
+        b.classList.toggle('on', on);
+        b.textContent = on ? '★' : '☆';      // 안 고른 별은 윤곽으로 둔다
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+      var lab = $(p[2]);
+      lab.textContent = val ? (val + '점 · ' + p[3][val]) : p[3][0];
+      lab.classList.toggle('empty', !val);
     });
   }
+
+  /* 글이 길어지면 칸이 저절로 커진다 */
+  function grow(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight + 2, 460) + 'px';
+  }
+  function growAll() { FIELDS.forEach(function (f) { grow($(f.id)); }); }
+
+  /* 저장하지 않은 고침이 있나 */
+  function dirty() {
+    if (!CUR || !CUR.editable || !LOADED) return false;
+    if (starC !== LOADED.starClass || starM !== LOADED.starMe) return true;
+    for (var i = 0; i < FIELDS.length; i++) {
+      if ($(FIELDS[i].id).value !== (LOADED[FIELDS[i].key] || '')) return true;
+    }
+    return false;
+  }
+  var LOADED = null;
 
   function counters() {
     FIELDS.forEach(function (f) {
@@ -520,9 +606,12 @@
     if (r.error === 'auth') { logout(); return; }
     if (r.error) { msg('edMsg', errText(r), 'err'); done(); return; }
     lsDel(draftKey(CUR.ymd, CUR.perio));
-    msg('edMsg', '저장했어요!', 'ok');
+    LOADED = { starClass: starC, starMe: starM };
+    FIELDS.forEach(function (f) { LOADED[f.key] = $(f.id).value; });
+    msg('edMsg', '');
+    toast(r.mode === 'update' ? '고쳐 썼어요 ✓' : '저장했어요 ✓', 'good');
     done();
-    setTimeout(function () { openCalendar(YM); }, 700);
+    setTimeout(function () { history.back(); }, 750);
 
     function done() {
       $('btnSave').disabled = false;
@@ -531,7 +620,8 @@
   }
 
   /* ══════════ 나의 기록 모아보기 ══════════ */
-  async function openDash() {
+  async function openDash(noPush) {
+    if (!noPush) pushView({ v: 'dash', ym: YM });
     show('loading');
     var r;
     try { r = await window.api('mydash', { token: TOKEN }); }
@@ -541,11 +631,24 @@
 
     var s = r.summary;
     var rate = s.past ? Math.round(s.done / s.past * 100) : 0;
+
+    // 연속 기록 — 최근 수업부터 거슬러 올라가며 빠짐없이 쓴 횟수
+    var have = {};
+    r.entries.forEach(function (e) { have[e.ymd + '-' + e.perio] = 1; });
+    var streak = 0;
+    var slots = (r.slots || []).slice().sort(function (a, b) {
+      return a.ymd === b.ymd ? b.perio - a.perio : (a.ymd < b.ymd ? 1 : -1);
+    });
+    for (var i = 0; i < slots.length; i++) {
+      if (have[slots[i].ymd + '-' + slots[i].perio]) streak++;
+      else break;
+    }
+
     $('tiles').innerHTML =
       tile(s.done + '개', '쓴 기록', 'hi') +
       tile(rate + '%', '지나간 수업 ' + s.past + '번 중') +
-      tile(s.chars.toLocaleString() + '자', '내가 쓴 글자') +
-      tile(s.avgMe ? s.avgMe.toFixed(1) : '—', '나의 참여도 평균', 'star');
+      tile(streak + '번', '이어서 쓴 수업', streak >= 3 ? 'hi' : '') +
+      tile(s.chars.toLocaleString() + '자', '내가 쓴 글자');
 
     // 달마다
     var months = Object.keys(s.monthsTotal).sort();
@@ -576,12 +679,16 @@
       }).join('');
       return '<div class="rec"><div class="rhead">' +
         '<span class="rwhen">' + fmtShort(e.ymd) + ' ' + e.perio + '교시</span>' +
-        '<span class="rstar">' + (e.starClass ? '수업 ' + '★'.repeat(e.starClass) : '') +
-        (e.starMe ? ' · 참여 ' + '★'.repeat(e.starMe) : '') + '</span></div>' +
+        '<span class="rstar">' + (e.starClass ? '수업 ' + starText(e.starClass) : '') +
+        (e.starMe ? ' · 참여 ' + starText(e.starMe) : '') + '</span></div>' +
         (body || '<p class="sub" style="margin:0">별점만 남겼어요.</p>') + '</div>';
-    }).join('') : '<p class="sub">아직 쓴 기록이 없어요. 달력에서 수학 수업 칸을 눌러 시작해 보세요.</p>';
+    }).join('') : '<div class="card"><div class="empty"><div class="big">📓</div>' +
+        '<b>아직 쓴 기록이 없어요</b><span>달력에서 수학 수업 칸을 눌러 첫 일기를 써 보세요.</span></div></div>';
 
     show('dash');
+  }
+  function starText(n) {
+    return '★'.repeat(n) + '<span class="off">' + '☆'.repeat(5 - n) + '</span>';
   }
   function tile(big, small, kind) {
     return '<div class="tile' + (kind ? ' ' + kind : '') + '"><b>' + big + '</b><span>' +
@@ -647,7 +754,11 @@
   });
   $('btnPrev').addEventListener('click', function () { moveMonth(-1); });
   $('btnNext').addEventListener('click', function () { moveMonth(1); });
-  $('btnBack').addEventListener('click', function () { saveDraft(); openCalendar(YM); });
+  $('btnBack').addEventListener('click', function () {
+    saveDraft();
+    if (dirty() && !confirm('저장하지 않은 내용이 있어요. 그래도 달력으로 갈까요?\n(쓰던 내용은 이 기기에 임시로 남습니다)')) return;
+    history.back();
+  });
   $('btnSave').addEventListener('click', doSave);
   $('btnDash').addEventListener('click', openDash);
   $('btnDashBack').addEventListener('click', function () { openCalendar(YM); });
@@ -663,11 +774,21 @@
   $('noteSend').addEventListener('click', sendNote);
 
   FIELDS.forEach(function (f) {
+    $(f.id).classList.add('grow');
     $(f.id).addEventListener('input', function () {
       counters();
+      grow($(f.id));
       clearTimeout(draftTimer);
       draftTimer = setTimeout(saveDraft, 1200);
     });
+  });
+  $('tipAct').addEventListener('toggle', function () {
+    lsSet('md.tip', $('tipAct').open ? 'on' : 'off');
+  });
+  // 창을 닫으려 할 때 저장 안 한 내용이 있으면 브라우저가 물어본다
+  window.addEventListener('beforeunload', function (e) {
+    saveDraft();
+    if (dirty()) { e.preventDefault(); e.returnValue = ''; }
   });
   // 화면을 덮거나 앱을 옮길 때도 임시저장 (휴대폰에서 자주 일어난다)
   document.addEventListener('visibilitychange', function () {
