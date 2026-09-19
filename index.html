@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>수학 일기</title>
-<meta name="description" content="구월중학교 수학 일기 — 수학 수업이 있는 날마다 배운 것과 느낀 점을 남깁니다.">
+<meta name="description" content="구월중학교 수학 일기 — 수학 수업이 있는 날마다 배운 것과 한 일을 남깁니다.">
+<meta name="theme-color" content="#3b5bdb">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
 </head>
@@ -33,19 +34,13 @@
         </div>
       </div>
 
-      <div style="text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:.12em;
-                  margin:4px 0 18px;min-height:2.1rem" id="maskedName"></div>
+      <div style="text-align:center;font-size:1.45rem;font-weight:800;letter-spacing:.12em;
+                  margin:2px 0 16px;min-height:2rem" id="maskedName"></div>
 
       <div class="field">
         <label for="birth">생년월일</label>
-        <div class="btn-row" style="margin-bottom:8px">
-          <button type="button" class="btn-ghost yr" data-y="2011">2011년</button>
-          <button type="button" class="btn-ghost yr" data-y="2012">2012년</button>
-          <button type="button" class="btn-ghost yr" data-y="2013">2013년</button>
-          <button type="button" class="btn-ghost yr" data-y="2014">2014년</button>
-        </div>
-        <input type="date" id="birth" min="2004-01-01">
-        <p class="hint">태어난 해를 먼저 누르면 달력이 그 해로 열립니다.</p>
+        <input type="date" id="birth" value="2013-01-01" min="2004-01-01">
+        <p class="hint">달력에서 연도·월·일을 모두 바꿀 수 있습니다.</p>
       </div>
 
       <div id="loginMsg" class="hide"></div>
@@ -79,8 +74,9 @@
       </div>
       <div id="calMsg" class="hide"></div>
     </div>
-    <div class="card" style="margin-top:14px">
-      <button class="btn-ghost" id="btnAllNotes" style="width:100%">✉ 내가 보낸 쪽지 보기</button>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn-ghost" id="btnDash" style="flex:1">📊 나의 기록 모아보기</button>
+      <button class="btn-ghost" id="btnAllNotes" style="flex:1">✉ 보낸 쪽지</button>
     </div>
   </section>
 
@@ -88,7 +84,7 @@
   <section id="ed" class="hide">
     <div class="topbar">
       <button id="btnBack">← 달력</button>
-      <div class="when" id="edWhen"></div>
+      <div class="ed-when" id="edWhen"></div>
     </div>
     <div class="card">
       <div id="edLocked" class="msg msg-info hide"></div>
@@ -107,6 +103,13 @@
         placeholder="예) 맞꼭지각은 항상 크기가 같다는 것을 배웠다."></textarea>
       <div class="counter" id="cLearned"></div>
 
+      <h2>🙋 수업 시간의 나의 활동</h2>
+      <p class="tip">내가 <b>직접 한 일</b>을 적어 두면 학기말 생활기록부를 쓸 때 그대로 쓰입니다.
+        맡은 역할, 발표한 것, 친구에게 설명한 것, 끝까지 붙잡고 푼 문제 같은 것을 적어 보세요.</p>
+      <textarea id="tActivity" maxlength="2000"
+        placeholder="예) 모둠에서 각도기로 재는 역할을 맡아, 잘 모르는 친구에게 재는 방법을 설명해 주었다."></textarea>
+      <div class="counter" id="cActivity"></div>
+
       <h2>💭 느낀 점</h2>
       <textarea id="tFelt" maxlength="2000"
         placeholder="예) 처음에는 헷갈렸는데 그림을 그려 보니 이해가 됐다."></textarea>
@@ -117,22 +120,46 @@
         placeholder="예) 동위각과 엇각 문제를 더 풀어 봐야겠다."></textarea>
       <div class="counter" id="cNext"></div>
 
-      <p class="hint" style="margin-top:14px">
-        세 칸을 모두 쓰지 않아도 됩니다. 쓰고 싶은 칸만 골라 쓰세요.
+      <p class="hint" style="margin-top:12px">
+        네 칸을 모두 쓰지 않아도 됩니다. 쓰고 싶은 칸만 골라 쓰세요.
       </p>
 
       <div id="edMsg" class="hide"></div>
 
       <div class="sticky">
         <div class="btn-row">
-          <button class="btn-ghost" id="btnNote" style="flex:1">✉ 선생님께 하고싶은 말</button>
-          <button class="btn-main" id="btnSave" style="flex:1.4;width:auto">저장하기</button>
+          <button class="btn-ghost" id="btnNote" style="flex:1">✉ 선생님께</button>
+          <button class="btn-main" id="btnSave" style="flex:1.5;width:auto">저장하기</button>
         </div>
         <div class="hint" id="draftHint" style="margin:8px 0 0"></div>
       </div>
 
       <div id="myNotes"></div>
     </div>
+  </section>
+
+  <!-- ══════════ 나의 기록 모아보기 ══════════ -->
+  <section id="dash" class="hide">
+    <div class="topbar">
+      <button id="btnDashBack">← 달력</button>
+      <div class="ed-when">📊 나의 기록</div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card" style="margin-top:12px">
+      <h2 style="margin-top:0">달마다 쓴 개수</h2>
+      <div id="byMonth"></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h2 style="margin-top:0">글자 수가 많은 날</h2>
+      <div id="topDays"></div>
+    </div>
+
+    <h2>전체 기록</h2>
+    <div id="recList"></div>
+    <div id="dashMsg" class="hide"></div>
   </section>
 
   <!-- ══════════ 로딩 ══════════ -->
@@ -142,12 +169,12 @@
 
 </div>
 
-<!-- ══════════ 쪽지 모달 ══════════ -->
+<!-- ══════════ 쪽지 보내기 ══════════ -->
 <div class="modal hide" id="noteModal">
   <div class="box">
     <h2 style="margin-top:0">✉ 선생님께 하고싶은 말</h2>
     <div class="secret">🔒 여기에 쓴 내용은 <b>선생님만</b> 봅니다. 일기와 따로 보관됩니다.</div>
-    <textarea id="noteText" maxlength="1000" style="min-height:130px"
+    <textarea id="noteText" maxlength="1000" style="min-height:120px"
       placeholder="궁금한 것, 힘든 것, 하고 싶은 말을 편하게 적어도 됩니다."></textarea>
     <div id="noteMsg" class="hide"></div>
     <div class="btn-row" style="margin-top:12px">
@@ -157,7 +184,7 @@
   </div>
 </div>
 
-<!-- ══════════ 내 쪽지함 모달 ══════════ -->
+<!-- ══════════ 내 쪽지함 ══════════ -->
 <div class="modal hide" id="listModal">
   <div class="box">
     <h2 style="margin-top:0">내가 보낸 쪽지</h2>
@@ -181,6 +208,13 @@
   var starC = 0, starM = 0;
   var draftTimer = null;
 
+  var FIELDS = [
+    { id: 'tLearned',  cnt: 'cLearned',  key: 'learned',  label: '배운 내용' },
+    { id: 'tActivity', cnt: 'cActivity', key: 'activity', label: '나의 활동' },
+    { id: 'tFelt',     cnt: 'cFelt',     key: 'felt',     label: '느낀 점' },
+    { id: 'tNext',     cnt: 'cNext',     key: 'next',     label: '앞으로' }
+  ];
+
   /* ── 저장소(사생활 보호 모드에서도 죽지 않게) ── */
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -188,7 +222,7 @@
 
   /* ── 화면 전환 ── */
   function show(id) {
-    ['login', 'cal', 'ed', 'loading'].forEach(function (s) {
+    ['login', 'cal', 'ed', 'dash', 'loading'].forEach(function (s) {
       $(s).classList.toggle('hide', s !== id);
     });
     window.scrollTo(0, 0);
@@ -210,11 +244,21 @@
     if (r.error === 'too_late') return '작성 기간(' + r.days + '일)이 지나 고칠 수 없습니다.';
     return window.ERRMSG[r.error] || ('문제가 생겼습니다. (' + r.error + ')');
   }
-  function fmtYmd(ymd) {
-    var d = ymd.slice(0, 4) + '년 ' + (+ymd.slice(4, 6)) + '월 ' + (+ymd.slice(6, 8)) + '일';
-    var dow = ['일', '월', '화', '수', '목', '금', '토'][
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    }).replace(/\n/g, '<br>');
+  }
+  function dowOf(ymd) {
+    return ['일', '월', '화', '수', '목', '금', '토'][
       new Date(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8)).getDay()];
-    return d + ' (' + dow + ')';
+  }
+  function fmtYmd(ymd) {
+    return ymd.slice(0, 4) + '년 ' + (+ymd.slice(4, 6)) + '월 ' +
+           (+ymd.slice(6, 8)) + '일 (' + dowOf(ymd) + ')';
+  }
+  function fmtShort(ymd) {
+    return (+ymd.slice(4, 6)) + '월 ' + (+ymd.slice(6, 8)) + '일 (' + dowOf(ymd) + ')';
   }
 
   /* ══════════ 시작 ══════════ */
@@ -236,14 +280,12 @@
     }
     $('birth').max = BOOT.today.slice(0, 4) + '-' + BOOT.today.slice(4, 6) + '-' + BOOT.today.slice(6, 8);
 
-    // 학년 채우기
     var g = $('selG');
     g.innerHTML = BOOT.grades.map(function (x) {
       return '<option value="' + x + '">' + x + '학년</option>';
     }).join('');
     fillClasses();
 
-    // 이미 들어와 있던 사람은 바로 달력으로
     TOKEN = lsGet('md.token');
     var saved = lsGet('md.me');
     if (TOKEN && saved) {
@@ -310,7 +352,6 @@
   function logout() {
     lsDel('md.token'); lsDel('md.me');
     TOKEN = null; ME = null;
-    $('birth').value = '';
     show('login');
   }
 
@@ -324,9 +365,8 @@
     if (r.error === 'auth') { logout(); msg('loginMsg', window.ERRMSG.auth, 'info'); return; }
     if (r.error) { show('cal'); msg('calMsg', errText(r), 'err'); return; }
     MONTH = r;
-    ME = Object.assign(ME || {}, r.student, { sid: ME ? ME.sid : null });
-    $('who').innerHTML = r.student.name + '<small>' + r.student.g + '학년 ' + r.student.c +
-      '반 ' + r.student.n + '번</small>';
+    $('who').innerHTML = esc(r.student.name) + '<small>' + r.student.g + '학년 ' +
+      r.student.c + '반 ' + r.student.n + '번</small>';
     msg('calMsg', '');
     renderCalendar();
     show('cal');
@@ -336,14 +376,12 @@
     var y = +YM.slice(0, 4), m = +YM.slice(4, 6);
     $('ymLabel').textContent = y + '년 ' + m + '월';
 
-    // 날짜 → 그 날의 수업들
     var byDay = {};
-    MONTH.days.forEach(function (d) {
-      (byDay[d.ymd] = byDay[d.ymd] || []).push(d);
-    });
+    MONTH.days.forEach(function (d) { (byDay[d.ymd] = byDay[d.ymd] || []).push(d); });
 
     var first = new Date(y, m - 1, 1).getDay();
     var last = new Date(y, m, 0).getDate();
+    var subj = BOOT.subject || '수학';
     var html = '';
     for (var i = 0; i < first; i++) html += '<div class="cell blank"></div>';
     for (var d = 1; d <= last; d++) {
@@ -356,12 +394,10 @@
         var k = s.done ? 'done' : (s.editable ? '' : 'locked');
         var tag = s.done ? '다 썼어요'
           : (s.editable ? '쓰기' : (s.ymd > MONTH.today ? '수업 전' : '기간 지남'));
-        var star = s.done && s.starClass ? ' ' + '★'.repeat(s.starClass) : '';
         html += '<button class="slot ' + k + '" data-ymd="' + s.ymd + '" data-perio="' + s.perio + '"' +
                 (s.editable || s.done ? '' : ' disabled') + '>' +
-                s.perio + '교시 ' + (BOOT.subject || '수학') +
-                '<span class="tag">' + tag + star +
-                (s.notes ? ' ✉' + s.notes : '') + '</span></button>';
+                s.perio + '교시<span class="subj"> ' + subj + '</span>' +
+                '<span class="tag">' + tag + (s.notes ? ' ✉' : '') + '</span></button>';
       });
       html += '</div>';
     }
@@ -370,14 +406,12 @@
     var tot = MONTH.days.length;
     var done = MONTH.days.filter(function (d2) { return d2.done; }).length;
     $('progress').textContent = tot
-      ? '이번 달 수학 수업 ' + tot + '번 중 ' + done + '번 썼어요.'
-      : '이번 달에는 수학 수업이 없어요.';
+      ? '이번 달 ' + subj + ' 수업 ' + tot + '번 중 ' + done + '번 썼어요.'
+      : '이번 달에는 ' + subj + ' 수업이 없어요.';
     $('bar').style.width = tot ? Math.round(done / tot * 100) + '%' : '0%';
 
     Array.prototype.forEach.call($('calGrid').querySelectorAll('.slot'), function (b) {
-      b.addEventListener('click', function () {
-        openEditor(b.dataset.ymd, +b.dataset.perio);
-      });
+      b.addEventListener('click', function () { openEditor(b.dataset.ymd, +b.dataset.perio); });
     });
   }
 
@@ -406,23 +440,20 @@
     var e = r.entry;
     var draft = null;
     try { draft = JSON.parse(lsGet(draftKey(ymd, perio)) || 'null'); } catch (x) {}
-    // 저장된 것보다 임시저장이 더 최근이면 임시저장을 살린다
     var useDraft = draft && (!e.savedMs || draft.at > e.savedMs);
     var src = useDraft ? draft : e;
 
-    $('tLearned').value = src.learned || '';
-    $('tFelt').value = src.felt || '';
-    $('tNext').value = src.next || '';
+    FIELDS.forEach(function (f) { $(f.id).value = src[f.key] || ''; });
     starC = src.starClass || 0;
     starM = src.starMe || 0;
     paintStars();
     counters();
     $('draftHint').textContent = useDraft
       ? '⚠ 저장하지 않고 닫은 내용이 남아 있어 되살렸습니다.'
-      : (e.savedMs ? '저장됨 · ' + (e.editCnt ? e.editCnt + '번 고쳤어요' : '') : '');
+      : (e.savedMs ? '저장됨' + (e.editCnt ? ' · ' + e.editCnt + '번 고쳤어요' : '') : '');
 
     var lock = !r.editable;
-    ['tLearned', 'tFelt', 'tNext'].forEach(function (i) { $(i).disabled = lock; });
+    FIELDS.forEach(function (f) { $(f.id).disabled = lock; });
     $('btnSave').disabled = lock;
     Array.prototype.forEach.call(document.querySelectorAll('.stars button'), function (b) {
       b.disabled = lock;
@@ -439,7 +470,7 @@
   }
 
   function paintStars() {
-    [['starC', starC], ['starM', starM]].forEach(function (p) {
+    [['starC', 'C'], ['starM', 'M']].forEach(function (p) {
       var box = $(p[0]);
       if (!box.children.length) {
         box.innerHTML = '★★★★★'.split('').map(function (_, i) {
@@ -448,14 +479,14 @@
         Array.prototype.forEach.call(box.children, function (b) {
           b.addEventListener('click', function () {
             var v = +b.dataset.v;
-            if (p[0] === 'starC') starC = (starC === v ? 0 : v);
+            if (p[1] === 'C') starC = (starC === v ? 0 : v);
             else starM = (starM === v ? 0 : v);
             paintStars();
             saveDraft();
           });
         });
       }
-      var val = (p[0] === 'starC') ? starC : starM;
+      var val = (p[1] === 'C') ? starC : starM;
       Array.prototype.forEach.call(box.children, function (b, i) {
         b.classList.toggle('on', i < val);
       });
@@ -463,27 +494,23 @@
   }
 
   function counters() {
-    [['tLearned', 'cLearned'], ['tFelt', 'cFelt'], ['tNext', 'cNext']].forEach(function (p) {
-      var n = $(p[0]).value.length;
-      $(p[1]).textContent = n ? n + ' / 2000자' : '';
+    FIELDS.forEach(function (f) {
+      var n = $(f.id).value.length;
+      $(f.cnt).textContent = n ? n + ' / 2000자' : '';
     });
   }
 
   function saveDraft() {
     if (!CUR || !CUR.editable) return;
-    lsSet(draftKey(CUR.ymd, CUR.perio), JSON.stringify({
-      learned: $('tLearned').value, felt: $('tFelt').value, next: $('tNext').value,
-      starClass: starC, starMe: starM, at: Date.now()
-    }));
+    var o = { starClass: starC, starMe: starM, at: Date.now() };
+    FIELDS.forEach(function (f) { o[f.key] = $(f.id).value; });
+    lsSet(draftKey(CUR.ymd, CUR.perio), JSON.stringify(o));
   }
 
   async function doSave() {
     if (!CUR) return;
-    var payload = {
-      token: TOKEN, ymd: CUR.ymd, perio: CUR.perio,
-      learned: $('tLearned').value, felt: $('tFelt').value, next: $('tNext').value,
-      starClass: starC, starMe: starM
-    };
+    var payload = { token: TOKEN, ymd: CUR.ymd, perio: CUR.perio, starClass: starC, starMe: starM };
+    FIELDS.forEach(function (f) { payload[f.key] = $(f.id).value; });
     $('btnSave').disabled = true;
     $('btnSave').textContent = '저장 중…';
     var r;
@@ -502,6 +529,64 @@
     }
   }
 
+  /* ══════════ 나의 기록 모아보기 ══════════ */
+  async function openDash() {
+    show('loading');
+    var r;
+    try { r = await window.api('mydash', { token: TOKEN }); }
+    catch (e) { show('cal'); msg('calMsg', e.message, 'err'); return; }
+    if (r.error === 'auth') { logout(); return; }
+    if (r.error) { show('cal'); msg('calMsg', errText(r), 'err'); return; }
+
+    var s = r.summary;
+    var rate = s.past ? Math.round(s.done / s.past * 100) : 0;
+    $('tiles').innerHTML =
+      tile(s.done + '개', '쓴 기록', 'hi') +
+      tile(rate + '%', '지나간 수업 ' + s.past + '번 중') +
+      tile(s.chars.toLocaleString() + '자', '내가 쓴 글자') +
+      tile(s.avgMe ? s.avgMe.toFixed(1) : '—', '나의 참여도 평균', 'star');
+
+    // 달마다
+    var months = Object.keys(s.monthsTotal).sort();
+    $('byMonth').innerHTML = months.length ? months.map(function (ym) {
+      var tot = s.monthsTotal[ym] || 0;
+      var got = s.byMonth[ym] || 0;
+      var pct = tot ? Math.round(got / tot * 100) : 0;
+      return '<div class="mrow"><span class="mname">' + (+ym.slice(4, 6)) + '월</span>' +
+        '<span class="mbar"><i style="width:' + pct + '%"></i></span>' +
+        '<span class="mval">' + got + ' / ' + tot + '</span></div>';
+    }).join('') : '<p class="sub">아직 수업이 없어요.</p>';
+
+    // 글자 수 많은 날
+    var top = r.entries.slice().sort(function (a, b) { return b.chars - a.chars; }).slice(0, 5)
+      .filter(function (e) { return e.chars > 0; });
+    var max = top.length ? top[0].chars : 1;
+    $('topDays').innerHTML = top.length ? top.map(function (e) {
+      return '<div class="mrow"><span class="mname">' + (+e.ymd.slice(4, 6)) + '/' +
+        (+e.ymd.slice(6, 8)) + '</span>' +
+        '<span class="mbar"><i style="width:' + Math.round(e.chars / max * 100) + '%"></i></span>' +
+        '<span class="mval">' + e.chars + '자</span></div>';
+    }).join('') : '<p class="sub">아직 쓴 글이 없어요.</p>';
+
+    // 전체 기록
+    $('recList').innerHTML = r.entries.length ? r.entries.map(function (e) {
+      var body = FIELDS.map(function (f) {
+        return e[f.key] ? '<p><span class="k">' + f.label + '</span>' + esc(e[f.key]) + '</p>' : '';
+      }).join('');
+      return '<div class="rec"><div class="rhead">' +
+        '<span class="rwhen">' + fmtShort(e.ymd) + ' ' + e.perio + '교시</span>' +
+        '<span class="rstar">' + (e.starClass ? '수업 ' + '★'.repeat(e.starClass) : '') +
+        (e.starMe ? ' · 참여 ' + '★'.repeat(e.starMe) : '') + '</span></div>' +
+        (body || '<p class="sub" style="margin:0">별점만 남겼어요.</p>') + '</div>';
+    }).join('') : '<p class="sub">아직 쓴 기록이 없어요. 달력에서 수학 수업 칸을 눌러 시작해 보세요.</p>';
+
+    show('dash');
+  }
+  function tile(big, small, kind) {
+    return '<div class="tile' + (kind ? ' ' + kind : '') + '"><b>' + big + '</b><span>' +
+      small + '</span></div>';
+  }
+
   /* ══════════ 쪽지 ══════════ */
   function renderMyNotes(notes) {
     if (!notes || !notes.length) { $('myNotes').innerHTML = ''; return; }
@@ -509,14 +594,10 @@
   }
   function noteHtml(n) {
     return '<div class="note-item"><div class="meta">' +
-      new Date(n.ms).toLocaleString('ko-KR') + (n.read ? ' · 선생님이 확인했어요' : ' · 아직 안 읽음') +
+      new Date(n.ms).toLocaleString('ko-KR') +
+      (n.read ? ' · 선생님이 확인했어요' : ' · 아직 안 읽음') +
       '</div><div>' + esc(n.text) + '</div>' +
       (n.reply ? '<div class="reply"><b>선생님:</b> ' + esc(n.reply) + '</div>' : '') + '</div>';
-  }
-  function esc(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
-    }).replace(/\n/g, '<br>');
   }
 
   async function sendNote() {
@@ -559,13 +640,6 @@
   $('selN').addEventListener('change', showMasked);
   $('btnLogin').addEventListener('click', doLogin);
   $('birth').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.yr'), function (b) {
-    b.addEventListener('click', function () {
-      // 값을 그 해 1월 1일로 두면 달력이 그 해로 열린다
-      $('birth').value = b.dataset.y + '-01-01';
-      $('birth').focus();
-    });
-  });
 
   $('btnOut').addEventListener('click', function () {
     if (confirm('나갈까요? 다음에 다시 번호와 생년월일로 들어와야 합니다.')) logout();
@@ -574,6 +648,8 @@
   $('btnNext').addEventListener('click', function () { moveMonth(1); });
   $('btnBack').addEventListener('click', function () { saveDraft(); openCalendar(YM); });
   $('btnSave').addEventListener('click', doSave);
+  $('btnDash').addEventListener('click', openDash);
+  $('btnDashBack').addEventListener('click', function () { openCalendar(YM); });
   $('btnAllNotes').addEventListener('click', openAllNotes);
   $('listClose').addEventListener('click', function () { $('listModal').classList.add('hide'); });
 
@@ -585,14 +661,14 @@
   $('noteCancel').addEventListener('click', function () { $('noteModal').classList.add('hide'); });
   $('noteSend').addEventListener('click', sendNote);
 
-  ['tLearned', 'tFelt', 'tNext'].forEach(function (id) {
-    $(id).addEventListener('input', function () {
+  FIELDS.forEach(function (f) {
+    $(f.id).addEventListener('input', function () {
       counters();
       clearTimeout(draftTimer);
       draftTimer = setTimeout(saveDraft, 1200);
     });
   });
-  // 태블릿을 덮거나 탭을 옮길 때도 임시저장
+  // 화면을 덮거나 앱을 옮길 때도 임시저장 (휴대폰에서 자주 일어난다)
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') saveDraft();
   });

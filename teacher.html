@@ -87,9 +87,17 @@
         <div><label for="eC">반</label><select id="eC"><option value="">전체</option></select></div>
         <div><label for="eF">부터</label><input type="date" id="eF"></div>
         <div><label for="eT">까지</label><input type="date" id="eT"></div>
-        <div><button class="btn-ghost" id="eGo">내려받기</button></div>
+        <div><button class="btn-ghost" id="eGo">기록 그대로</button></div>
+        <div><button class="btn-main" id="eGo2" style="width:auto">학생별로 모아서</button></div>
       </div>
-      <p class="sub">엑셀에서 바로 열립니다(BOM 붙임). 생활기록부에 옮길 때 쓰세요.</p>
+      <p class="sub">
+        <b>기록 그대로</b> — 한 줄에 한 수업. 통계나 확인용입니다.<br>
+        <b>학생별로 모아서</b> — <b>한 줄에 학생 한 명</b>. 그 학생의 한 학기 기록이
+        <code>[09/18 4교시] · 배운 내용 … · 나의 활동 …</code> 모양으로 한 칸에 모입니다.
+        <b>세부능력 및 특기사항</b>을 쓸 때 그 칸을 통째로 AI에 넣으면 됩니다.
+        쪽지는 일부러 뺐습니다 — 선생님께만 한 말이라 세특 자료로 돌리면 안 됩니다.
+      </p>
+      <p class="sub">둘 다 엑셀에서 바로 열립니다(BOM 붙임).</p>
 
       <h2>비밀번호 바꾸기</h2>
       <div class="pick">
@@ -246,7 +254,7 @@
       h += '<td>' + (s && s.me ? s.me.toFixed(1) : '·') + '</td>';
     });
     h += '<td></td></tr></tbody></table></div>';
-    h += '<p class="sub" style="margin-top:10px">칸의 숫자는 쓴 글자 수입니다. ★ 는 별점만 고른 경우.</p>';
+    h += '<p class="sub" style="margin-top:10px">칸의 숫자는 네 칸(배운 내용·나의 활동·느낀 점·앞으로)에 쓴 글자 수를 모두 더한 것입니다. ★ 는 별점만 고른 경우.</p>';
     $('gridBody').innerHTML = h;
 
     $('rSlot').innerHTML = r.days.map(function (d) {
@@ -280,6 +288,7 @@
         return '<div class="entry"><h4>' + e.no + ' ' + esc(e.name) +
           ' <span class="chip">수업 ' + stars(e.starClass) + ' · 참여 ' + stars(e.starMe) + '</span></h4>' +
           (e.learned ? '<p><span class="k">배운 내용</span><br>' + esc(e.learned) + '</p>' : '') +
+          (e.activity ? '<p><span class="k">나의 활동</span><br>' + esc(e.activity) + '</p>' : '') +
           (e.felt ? '<p><span class="k">느낀 점</span><br>' + esc(e.felt) + '</p>' : '') +
           (e.next ? '<p><span class="k">앞으로</span><br>' + esc(e.next) + '</p>' : '') +
           '</div>';
@@ -325,8 +334,9 @@
   }
 
   /* ── 내보내기 · 점검 ── */
-  function exportCsv() {
+  function exportCsv(mode) {
     var q = ['act=csv', 'tok=' + encodeURIComponent(TOK)];
+    if (mode) q.push('mode=' + mode);
     if ($('eG').value) q.push('grade=' + $('eG').value);
     if ($('eC').value) q.push('cls=' + $('eC').value);
     if ($('eF').value) q.push('from=' + $('eF').value.replace(/-/g, ''));
@@ -370,7 +380,8 @@
   $('rGo').addEventListener('click', loadRead);
   $('nAll').addEventListener('click', function () { loadNotes(false); });
   $('nNew').addEventListener('click', function () { loadNotes(true); });
-  $('eGo').addEventListener('click', exportCsv);
+  $('eGo').addEventListener('click', function () { exportCsv(''); });
+  $('eGo2').addEventListener('click', function () { exportCsv('student'); });
   $('chk').addEventListener('click', check);
   $('pwGo').addEventListener('click', changePw);
 
