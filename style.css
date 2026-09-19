@@ -1,0 +1,261 @@
+/* 수학 일기앱 — 공용 스타일 (학생·교사 화면이 같이 쓴다) */
+
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --ink: #1b2233;
+  --ink-soft: #5c667e;
+  --ink-faint: #97a0b5;
+  --line: #e2e7f0;
+  --brand: #3b5bdb;
+  --brand-soft: #e7ecff;
+  --brand-ink: #2b45ad;
+  --good: #2f9e44;
+  --good-soft: #e6f6e9;
+  --warn: #e8590c;
+  --warn-soft: #fff0e6;
+  --star: #f59f00;
+  --shadow: 0 1px 2px rgba(27, 34, 51, .06), 0 8px 24px rgba(27, 34, 51, .06);
+  --r: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c;
+    --card: #1b1f29;
+    --ink: #e8ecf5;
+    --ink-soft: #a6b0c4;
+    --ink-faint: #6d768b;
+    --line: #2a303d;
+    --brand: #748ffc;
+    --brand-soft: #232b45;
+    --brand-ink: #b7c4ff;
+    --good: #51cf66;
+    --good-soft: #1d2a21;
+    --warn: #ff922b;
+    --warn-soft: #2d2118;
+    --star: #ffd43b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .3);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic",
+               "맑은 고딕", "Apple SD Gothic Neo", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+h1 { font-size: 1.35rem; margin: 0 0 4px; letter-spacing: -.02em; }
+h2 { font-size: 1.05rem; margin: 22px 0 10px; }
+.sub { color: var(--ink-soft); font-size: .9rem; margin: 0 0 18px; }
+.hide { display: none !important; }
+
+/* ── 단추 ── */
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  padding: 10px 14px;
+  transition: transform .05s ease, background .15s ease;
+}
+button:active { transform: scale(.98); }
+button:disabled { opacity: .5; cursor: default; }
+
+.btn-main {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+}
+.btn-ghost { background: transparent; color: var(--brand); border-color: var(--brand); }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── 입력 ── */
+label { display: block; font-size: .85rem; color: var(--ink-soft); margin: 0 0 6px; font-weight: 600; }
+
+select, input[type="date"], input[type="password"], input[type="text"], textarea {
+  font: inherit;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+select:focus, input:focus, textarea:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+textarea { min-height: 96px; resize: vertical; line-height: 1.65; }
+.field { margin-bottom: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* ── 알림 줄 ── */
+.msg { border-radius: 10px; padding: 11px 13px; font-size: .9rem; margin: 12px 0; }
+.msg-err { background: var(--warn-soft); color: var(--warn); }
+.msg-ok { background: var(--good-soft); color: var(--good); }
+.msg-info { background: var(--brand-soft); color: var(--brand-ink); }
+
+/* ── 별점 ── */
+.stars { display: flex; gap: 4px; }
+.stars button {
+  border: none;
+  background: none;
+  padding: 2px 3px;
+  font-size: 1.9rem;
+  line-height: 1;
+  color: var(--ink-faint);
+}
+.stars button.on { color: var(--star); }
+.star-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 8px 0;
+}
+.star-row .lab { font-weight: 600; font-size: .95rem; }
+
+/* ── 달력 ── */
+.cal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; gap: 8px;
+}
+.cal-head .ym { font-weight: 800; font-size: 1.15rem; }
+.dow, .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.dow div {
+  text-align: center; font-size: .78rem; color: var(--ink-soft);
+  padding: 4px 0; font-weight: 600;
+}
+.dow div:first-child, .cal .sun .dnum { color: #e03131; }
+.dow div:last-child, .cal .sat .dnum { color: #1971c2; }
+
+.cell {
+  min-height: 74px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 5px;
+  background: var(--card);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.cell.blank { border: none; background: none; }
+.cell.today { border-color: var(--brand); border-width: 2px; }
+.dnum { font-size: .78rem; color: var(--ink-soft); font-weight: 700; }
+
+.slot {
+  border: none;
+  width: 100%;
+  text-align: left;
+  border-radius: 8px;
+  padding: 4px 5px;
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+.slot.done { background: var(--good-soft); color: var(--good); }
+.slot.locked { background: transparent; color: var(--ink-faint); border: 1px dashed var(--line); }
+.slot .tag { display: block; font-size: .64rem; font-weight: 600; opacity: .85; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .78rem; color: var(--ink-soft); margin-top: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+
+/* ── 위쪽 띠 ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 14px;
+}
+.who { font-weight: 700; font-size: .95rem; }
+.who small { display: block; color: var(--ink-soft); font-weight: 500; font-size: .78rem; }
+.progress { font-size: .82rem; color: var(--ink-soft); margin-top: 8px; }
+.bar { height: 7px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+.bar i { display: block; height: 100%; background: var(--good); border-radius: 99px; transition: width .3s; }
+
+/* ── 쪽지 모달 ── */
+.modal {
+  position: fixed; inset: 0; background: rgba(15, 20, 32, .55);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0; z-index: 50;
+}
+.modal .box {
+  background: var(--card); width: 100%; max-width: 560px;
+  border-radius: 18px 18px 0 0; padding: 20px;
+  max-height: 88vh; overflow: auto;
+}
+@media (min-width: 560px) {
+  .modal { align-items: center; padding: 16px; }
+  .modal .box { border-radius: var(--r); }
+}
+.secret { background: var(--brand-soft); color: var(--brand-ink); border-radius: 10px; padding: 10px 12px; font-size: .84rem; margin-bottom: 12px; }
+.note-item { border-top: 1px solid var(--line); padding: 10px 0; font-size: .88rem; }
+.note-item .meta { color: var(--ink-faint); font-size: .75rem; }
+.note-item .reply { background: var(--good-soft); color: var(--good); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
+
+/* ── 일기 작성 ── */
+.ed-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.ed-head .when { font-weight: 800; font-size: 1.1rem; }
+.hint { font-size: .78rem; color: var(--ink-faint); margin: -8px 0 12px; }
+.counter { text-align: right; font-size: .72rem; color: var(--ink-faint); margin-top: -8px; }
+.sticky {
+  position: sticky; bottom: 0; background: var(--card);
+  padding: 12px 0 4px; border-top: 1px solid var(--line); margin-top: 8px;
+}
+
+/* ── 로딩 ── */
+.loading { text-align: center; padding: 40px 0; color: var(--ink-soft); }
+.spin {
+  width: 26px; height: 26px; margin: 0 auto 12px;
+  border: 3px solid var(--line); border-top-color: var(--brand);
+  border-radius: 50%; animation: sp .8s linear infinite;
+}
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* ── 교사 화면 격자 ── */
+.tgrid { overflow-x: auto; }
+table.g { border-collapse: collapse; font-size: .8rem; }
+table.g th, table.g td {
+  border: 1px solid var(--line); padding: 4px 6px; text-align: center; white-space: nowrap;
+}
+table.g th { background: var(--bg); position: sticky; top: 0; }
+table.g td.nm { text-align: left; position: sticky; left: 0; background: var(--card); }
+td.y { background: var(--good-soft); color: var(--good); font-weight: 700; }
+td.n { color: var(--ink-faint); }
+.chip {
+  display: inline-block; background: var(--brand-soft); color: var(--brand-ink);
+  border-radius: 99px; padding: 2px 10px; font-size: .75rem; font-weight: 700; margin-left: 6px;
+}
+.entry { border-top: 1px solid var(--line); padding: 12px 0; }
+.entry h4 { margin: 0 0 4px; font-size: .95rem; }
+.entry p { margin: 4px 0; font-size: .88rem; white-space: pre-wrap; }
+.entry .k { color: var(--ink-faint); font-size: .74rem; font-weight: 700; }

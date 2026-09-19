@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>수학 일기</title>
+<meta name="description" content="구월중학교 수학 일기 — 수학 수업이 있는 날마다 배운 것과 느낀 점을 남깁니다.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ══════════ 로그인 ══════════ -->
+  <section id="login" class="hide">
+    <h1>수학 일기</h1>
+    <p class="sub">구월중학교 · 학년과 반, 번호를 고르고 생년월일로 들어옵니다.</p>
+    <div class="card">
+      <div id="notice" class="msg msg-info hide"></div>
+
+      <div class="grid3">
+        <div class="field">
+          <label for="selG">학년</label>
+          <select id="selG"></select>
+        </div>
+        <div class="field">
+          <label for="selC">반</label>
+          <select id="selC"></select>
+        </div>
+        <div class="field">
+          <label for="selN">번호</label>
+          <select id="selN"></select>
+        </div>
+      </div>
+
+      <div style="text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:.12em;
+                  margin:4px 0 18px;min-height:2.1rem" id="maskedName"></div>
+
+      <div class="field">
+        <label for="birth">생년월일</label>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button type="button" class="btn-ghost yr" data-y="2011">2011년</button>
+          <button type="button" class="btn-ghost yr" data-y="2012">2012년</button>
+          <button type="button" class="btn-ghost yr" data-y="2013">2013년</button>
+          <button type="button" class="btn-ghost yr" data-y="2014">2014년</button>
+        </div>
+        <input type="date" id="birth" min="2004-01-01">
+        <p class="hint">태어난 해를 먼저 누르면 달력이 그 해로 열립니다.</p>
+      </div>
+
+      <div id="loginMsg" class="hide"></div>
+      <button class="btn-main" id="btnLogin">들어가기</button>
+    </div>
+    <p class="sub" style="margin-top:14px;text-align:center">
+      생년월일은 선생님이 가진 명렬표와 맞추어 봅니다. 5번 틀리면 10분 동안 잠깁니다.
+    </p>
+  </section>
+
+  <!-- ══════════ 달력 ══════════ -->
+  <section id="cal" class="hide">
+    <div class="topbar">
+      <div class="who" id="who"></div>
+      <button id="btnOut">나가기</button>
+    </div>
+    <div class="card">
+      <div class="cal-head">
+        <button id="btnPrev" aria-label="지난 달">◀</button>
+        <div class="ym" id="ymLabel"></div>
+        <button id="btnNext" aria-label="다음 달">▶</button>
+      </div>
+      <div class="dow"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+      <div class="cal" id="calGrid"></div>
+      <div class="progress" id="progress"></div>
+      <div class="bar"><i id="bar" style="width:0%"></i></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--brand-soft);border:1px solid var(--brand)"></i> 쓸 수 있어요</span>
+        <span><i class="dot" style="background:var(--good)"></i> 다 썼어요</span>
+        <span><i class="dot" style="background:transparent;border:1px dashed var(--line)"></i> 기간이 지났어요</span>
+      </div>
+      <div id="calMsg" class="hide"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <button class="btn-ghost" id="btnAllNotes" style="width:100%">✉ 내가 보낸 쪽지 보기</button>
+    </div>
+  </section>
+
+  <!-- ══════════ 일기 작성 ══════════ -->
+  <section id="ed" class="hide">
+    <div class="topbar">
+      <button id="btnBack">← 달력</button>
+      <div class="when" id="edWhen"></div>
+    </div>
+    <div class="card">
+      <div id="edLocked" class="msg msg-info hide"></div>
+
+      <div class="star-row">
+        <span class="lab">오늘 수업은 어땠나요?</span>
+        <div class="stars" id="starC"></div>
+      </div>
+      <div class="star-row" style="border-top:1px solid var(--line)">
+        <span class="lab">나는 얼마나 적극적이었나요?</span>
+        <div class="stars" id="starM"></div>
+      </div>
+
+      <h2>📘 오늘 배운 내용</h2>
+      <textarea id="tLearned" maxlength="2000"
+        placeholder="예) 맞꼭지각은 항상 크기가 같다는 것을 배웠다."></textarea>
+      <div class="counter" id="cLearned"></div>
+
+      <h2>💭 느낀 점</h2>
+      <textarea id="tFelt" maxlength="2000"
+        placeholder="예) 처음에는 헷갈렸는데 그림을 그려 보니 이해가 됐다."></textarea>
+      <div class="counter" id="cFelt"></div>
+
+      <h2>🎯 앞으로 공부할 내용</h2>
+      <textarea id="tNext" maxlength="2000"
+        placeholder="예) 동위각과 엇각 문제를 더 풀어 봐야겠다."></textarea>
+      <div class="counter" id="cNext"></div>
+
+      <p class="hint" style="margin-top:14px">
+        세 칸을 모두 쓰지 않아도 됩니다. 쓰고 싶은 칸만 골라 쓰세요.
+      </p>
+
+      <div id="edMsg" class="hide"></div>
+
+      <div class="sticky">
+        <div class="btn-row">
+          <button class="btn-ghost" id="btnNote" style="flex:1">✉ 선생님께 하고싶은 말</button>
+          <button class="btn-main" id="btnSave" style="flex:1.4;width:auto">저장하기</button>
+        </div>
+        <div class="hint" id="draftHint" style="margin:8px 0 0"></div>
+      </div>
+
+      <div id="myNotes"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 로딩 ══════════ -->
+  <section id="loading">
+    <div class="loading"><div class="spin"></div>불러오는 중…</div>
+  </section>
+
+</div>
+
+<!-- ══════════ 쪽지 모달 ══════════ -->
+<div class="modal hide" id="noteModal">
+  <div class="box">
+    <h2 style="margin-top:0">✉ 선생님께 하고싶은 말</h2>
+    <div class="secret">🔒 여기에 쓴 내용은 <b>선생님만</b> 봅니다. 일기와 따로 보관됩니다.</div>
+    <textarea id="noteText" maxlength="1000" style="min-height:130px"
+      placeholder="궁금한 것, 힘든 것, 하고 싶은 말을 편하게 적어도 됩니다."></textarea>
+    <div id="noteMsg" class="hide"></div>
+    <div class="btn-row" style="margin-top:12px">
+      <button id="noteCancel" style="flex:1">닫기</button>
+      <button class="btn-main" id="noteSend" style="flex:1.4;width:auto">보내기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 내 쪽지함 모달 ══════════ -->
+<div class="modal hide" id="listModal">
+  <div class="box">
+    <h2 style="margin-top:0">내가 보낸 쪽지</h2>
+    <div id="listBody"></div>
+    <button style="width:100%;margin-top:14px" id="listClose">닫기</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var BOOT = null;      // 서버가 준 기본 설정
+  var ME = null;        // { sid, g, c, n, name }
+  var TOKEN = null;
+  var YM = null;        // 보고 있는 달 'YYYYMM'
+  var MONTH = null;     // 이번 달 응답
+  var CUR = null;       // 작성 중인 { ymd, perio, editable }
+  var starC = 0, starM = 0;
+  var draftTimer = null;
+
+  /* ── 저장소(사생활 보호 모드에서도 죽지 않게) ── */
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  /* ── 화면 전환 ── */
+  function show(id) {
+    ['login', 'cal', 'ed', 'loading'].forEach(function (s) {
+      $(s).classList.toggle('hide', s !== id);
+    });
+    window.scrollTo(0, 0);
+  }
+  function msg(el, text, kind) {
+    var e = $(el);
+    if (!text) { e.className = 'hide'; e.textContent = ''; return; }
+    e.className = 'msg msg-' + (kind || 'err');
+    e.textContent = text;
+  }
+  function errText(r) {
+    if (!r) return '알 수 없는 문제가 생겼습니다.';
+    if (r.error === 'birth') {
+      return r.left > 0
+        ? '생년월일이 맞지 않습니다. ' + r.left + '번 더 틀리면 잠깁니다.'
+        : '생년월일이 맞지 않습니다.';
+    }
+    if (r.error === 'locked') return (r.minutes || 10) + '분 동안 잠겼습니다. 잠시 뒤 다시 해 주세요.';
+    if (r.error === 'too_late') return '작성 기간(' + r.days + '일)이 지나 고칠 수 없습니다.';
+    return window.ERRMSG[r.error] || ('문제가 생겼습니다. (' + r.error + ')');
+  }
+  function fmtYmd(ymd) {
+    var d = ymd.slice(0, 4) + '년 ' + (+ymd.slice(4, 6)) + '월 ' + (+ymd.slice(6, 8)) + '일';
+    var dow = ['일', '월', '화', '수', '목', '금', '토'][
+      new Date(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8)).getDay()];
+    return d + ' (' + dow + ')';
+  }
+
+  /* ══════════ 시작 ══════════ */
+  async function boot() {
+    show('loading');
+    try {
+      BOOT = await window.api('boot');
+    } catch (e) {
+      show('login');
+      msg('loginMsg', e.message, 'err');
+      return;
+    }
+    if (BOOT.error) { show('login'); msg('loginMsg', errText(BOOT), 'err'); return; }
+    if (BOOT.notice) { $('notice').textContent = BOOT.notice; $('notice').classList.remove('hide'); }
+    if (!BOOT.open) {
+      show('login');
+      msg('loginMsg', '지금은 일기앱이 잠겨 있습니다.', 'info');
+      $('btnLogin').disabled = true;
+    }
+    $('birth').max = BOOT.today.slice(0, 4) + '-' + BOOT.today.slice(4, 6) + '-' + BOOT.today.slice(6, 8);
+
+    // 학년 채우기
+    var g = $('selG');
+    g.innerHTML = BOOT.grades.map(function (x) {
+      return '<option value="' + x + '">' + x + '학년</option>';
+    }).join('');
+    fillClasses();
+
+    // 이미 들어와 있던 사람은 바로 달력으로
+    TOKEN = lsGet('md.token');
+    var saved = lsGet('md.me');
+    if (TOKEN && saved) {
+      try { ME = JSON.parse(saved); } catch (e) { ME = null; }
+      if (ME) { openCalendar(BOOT.today.slice(0, 6)); return; }
+    }
+    show('login');
+  }
+
+  function fillClasses() {
+    var g = +$('selG').value;
+    var list = (BOOT.classes[g] || []).slice().sort(function (a, b) { return a - b; });
+    $('selC').innerHTML = list.map(function (x) {
+      return '<option value="' + x + '">' + x + '반</option>';
+    }).join('');
+    fillNumbers();
+  }
+
+  async function fillNumbers() {
+    var g = +$('selG').value, c = +$('selC').value;
+    if (!g || !c) return;
+    $('selN').innerHTML = '<option>…</option>';
+    $('maskedName').textContent = '';
+    var r;
+    try { r = await window.api('numbers', { grade: g, cls: c }); }
+    catch (e) { msg('loginMsg', e.message, 'err'); return; }
+    if (r.error) { msg('loginMsg', errText(r), 'err'); return; }
+    msg('loginMsg', '');
+    $('selN').innerHTML = '<option value="">번호</option>' + r.students.map(function (s) {
+      return '<option value="' + s.no + '" data-m="' + s.masked + '">' + s.no + '번</option>';
+    }).join('');
+    showMasked();
+  }
+
+  function showMasked() {
+    var o = $('selN').selectedOptions[0];
+    $('maskedName').textContent = (o && o.dataset.m) ? o.dataset.m : '';
+  }
+
+  async function doLogin() {
+    var g = +$('selG').value, c = +$('selC').value, n = +$('selN').value;
+    var b = $('birth').value;
+    if (!n) { msg('loginMsg', '번호를 골라 주세요.', 'err'); return; }
+    if (!b) { msg('loginMsg', '생년월일을 골라 주세요.', 'err'); return; }
+    $('btnLogin').disabled = true;
+    $('btnLogin').textContent = '확인 중…';
+    var r;
+    try { r = await window.api('login', { grade: g, cls: c, no: n, birth: b }); }
+    catch (e) { msg('loginMsg', e.message, 'err'); reset(); return; }
+    if (r.error) { msg('loginMsg', errText(r), 'err'); reset(); return; }
+    TOKEN = r.token;
+    ME = r.student;
+    lsSet('md.token', TOKEN);
+    lsSet('md.me', JSON.stringify(ME));
+    reset();
+    openCalendar(BOOT.today.slice(0, 6));
+
+    function reset() {
+      $('btnLogin').disabled = false;
+      $('btnLogin').textContent = '들어가기';
+    }
+  }
+
+  function logout() {
+    lsDel('md.token'); lsDel('md.me');
+    TOKEN = null; ME = null;
+    $('birth').value = '';
+    show('login');
+  }
+
+  /* ══════════ 달력 ══════════ */
+  async function openCalendar(ym) {
+    YM = ym;
+    show('loading');
+    var r;
+    try { r = await window.api('month', { token: TOKEN, ym: ym }); }
+    catch (e) { show('cal'); msg('calMsg', e.message, 'err'); return; }
+    if (r.error === 'auth') { logout(); msg('loginMsg', window.ERRMSG.auth, 'info'); return; }
+    if (r.error) { show('cal'); msg('calMsg', errText(r), 'err'); return; }
+    MONTH = r;
+    ME = Object.assign(ME || {}, r.student, { sid: ME ? ME.sid : null });
+    $('who').innerHTML = r.student.name + '<small>' + r.student.g + '학년 ' + r.student.c +
+      '반 ' + r.student.n + '번</small>';
+    msg('calMsg', '');
+    renderCalendar();
+    show('cal');
+  }
+
+  function renderCalendar() {
+    var y = +YM.slice(0, 4), m = +YM.slice(4, 6);
+    $('ymLabel').textContent = y + '년 ' + m + '월';
+
+    // 날짜 → 그 날의 수업들
+    var byDay = {};
+    MONTH.days.forEach(function (d) {
+      (byDay[d.ymd] = byDay[d.ymd] || []).push(d);
+    });
+
+    var first = new Date(y, m - 1, 1).getDay();
+    var last = new Date(y, m, 0).getDate();
+    var html = '';
+    for (var i = 0; i < first; i++) html += '<div class="cell blank"></div>';
+    for (var d = 1; d <= last; d++) {
+      var ymd = YM + ('0' + d).slice(-2);
+      var dow = new Date(y, m - 1, d).getDay();
+      var cls = 'cell' + (ymd === MONTH.today ? ' today' : '') +
+                (dow === 0 ? ' sun' : dow === 6 ? ' sat' : '');
+      html += '<div class="' + cls + '"><div class="dnum">' + d + '</div>';
+      (byDay[ymd] || []).forEach(function (s) {
+        var k = s.done ? 'done' : (s.editable ? '' : 'locked');
+        var tag = s.done ? '다 썼어요' : (s.editable ? '쓰기' : '기간 지남');
+        var star = s.done && s.starClass ? ' ' + '★'.repeat(s.starClass) : '';
+        html += '<button class="slot ' + k + '" data-ymd="' + s.ymd + '" data-perio="' + s.perio + '"' +
+                (s.editable || s.done ? '' : ' disabled') + '>' +
+                s.perio + '교시 ' + (BOOT.subject || '수학') +
+                '<span class="tag">' + tag + star +
+                (s.notes ? ' ✉' + s.notes : '') + '</span></button>';
+      });
+      html += '</div>';
+    }
+    $('calGrid').innerHTML = html;
+
+    var tot = MONTH.days.length;
+    var done = MONTH.days.filter(function (d2) { return d2.done; }).length;
+    $('progress').textContent = tot
+      ? '이번 달 수학 수업 ' + tot + '번 중 ' + done + '번 썼어요.'
+      : '이번 달에는 수학 수업이 없어요.';
+    $('bar').style.width = tot ? Math.round(done / tot * 100) + '%' : '0%';
+
+    Array.prototype.forEach.call($('calGrid').querySelectorAll('.slot'), function (b) {
+      b.addEventListener('click', function () {
+        openEditor(b.dataset.ymd, +b.dataset.perio);
+      });
+    });
+  }
+
+  function moveMonth(step) {
+    var y = +YM.slice(0, 4), m = +YM.slice(4, 6) + step;
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+    openCalendar(String(y) + ('0' + m).slice(-2));
+  }
+
+  /* ══════════ 일기 작성 ══════════ */
+  function draftKey(ymd, perio) { return 'md.draft.' + (ME ? ME.sid : '') + '.' + ymd + '.' + perio; }
+
+  async function openEditor(ymd, perio) {
+    show('loading');
+    var r;
+    try { r = await window.api('entry', { token: TOKEN, ymd: ymd, perio: perio }); }
+    catch (e) { show('cal'); msg('calMsg', e.message, 'err'); return; }
+    if (r.error === 'auth') { logout(); return; }
+    if (r.error) { show('cal'); msg('calMsg', errText(r), 'err'); return; }
+
+    CUR = { ymd: ymd, perio: perio, editable: r.editable };
+    $('edWhen').textContent = fmtYmd(ymd) + ' ' + perio + '교시';
+    msg('edMsg', '');
+
+    var e = r.entry;
+    var draft = null;
+    try { draft = JSON.parse(lsGet(draftKey(ymd, perio)) || 'null'); } catch (x) {}
+    // 저장된 것보다 임시저장이 더 최근이면 임시저장을 살린다
+    var useDraft = draft && (!e.savedMs || draft.at > e.savedMs);
+    var src = useDraft ? draft : e;
+
+    $('tLearned').value = src.learned || '';
+    $('tFelt').value = src.felt || '';
+    $('tNext').value = src.next || '';
+    starC = src.starClass || 0;
+    starM = src.starMe || 0;
+    paintStars();
+    counters();
+    $('draftHint').textContent = useDraft
+      ? '⚠ 저장하지 않고 닫은 내용이 남아 있어 되살렸습니다.'
+      : (e.savedMs ? '저장됨 · ' + (e.editCnt ? e.editCnt + '번 고쳤어요' : '') : '');
+
+    var lock = !r.editable;
+    ['tLearned', 'tFelt', 'tNext'].forEach(function (i) { $(i).disabled = lock; });
+    $('btnSave').disabled = lock;
+    Array.prototype.forEach.call(document.querySelectorAll('.stars button'), function (b) {
+      b.disabled = lock;
+    });
+    $('edLocked').classList.toggle('hide', !lock);
+    if (lock) {
+      $('edLocked').textContent = '작성 기간이 지나 읽기만 할 수 있습니다.';
+    }
+
+    renderMyNotes(r.notes);
+    show('ed');
+  }
+
+  function paintStars() {
+    [['starC', starC], ['starM', starM]].forEach(function (p) {
+      var box = $(p[0]);
+      if (!box.children.length) {
+        box.innerHTML = '★★★★★'.split('').map(function (_, i) {
+          return '<button type="button" data-v="' + (i + 1) + '" aria-label="' + (i + 1) + '점">★</button>';
+        }).join('');
+        Array.prototype.forEach.call(box.children, function (b) {
+          b.addEventListener('click', function () {
+            var v = +b.dataset.v;
+            if (p[0] === 'starC') starC = (starC === v ? 0 : v);
+            else starM = (starM === v ? 0 : v);
+            paintStars();
+            saveDraft();
+          });
+        });
+      }
+      var val = (p[0] === 'starC') ? starC : starM;
+      Array.prototype.forEach.call(box.children, function (b, i) {
+        b.classList.toggle('on', i < val);
+      });
+    });
+  }
+
+  function counters() {
+    [['tLearned', 'cLearned'], ['tFelt', 'cFelt'], ['tNext', 'cNext']].forEach(function (p) {
+      var n = $(p[0]).value.length;
+      $(p[1]).textContent = n ? n + ' / 2000자' : '';
+    });
+  }
+
+  function saveDraft() {
+    if (!CUR || !CUR.editable) return;
+    lsSet(draftKey(CUR.ymd, CUR.perio), JSON.stringify({
+      learned: $('tLearned').value, felt: $('tFelt').value, next: $('tNext').value,
+      starClass: starC, starMe: starM, at: Date.now()
+    }));
+  }
+
+  async function doSave() {
+    if (!CUR) return;
+    var payload = {
+      token: TOKEN, ymd: CUR.ymd, perio: CUR.perio,
+      learned: $('tLearned').value, felt: $('tFelt').value, next: $('tNext').value,
+      starClass: starC, starMe: starM
+    };
+    $('btnSave').disabled = true;
+    $('btnSave').textContent = '저장 중…';
+    var r;
+    try { r = await window.api('save', payload); }
+    catch (e) { msg('edMsg', e.message, 'err'); done(); return; }
+    if (r.error === 'auth') { logout(); return; }
+    if (r.error) { msg('edMsg', errText(r), 'err'); done(); return; }
+    lsDel(draftKey(CUR.ymd, CUR.perio));
+    msg('edMsg', '저장했어요!', 'ok');
+    done();
+    setTimeout(function () { openCalendar(YM); }, 700);
+
+    function done() {
+      $('btnSave').disabled = false;
+      $('btnSave').textContent = '저장하기';
+    }
+  }
+
+  /* ══════════ 쪽지 ══════════ */
+  function renderMyNotes(notes) {
+    if (!notes || !notes.length) { $('myNotes').innerHTML = ''; return; }
+    $('myNotes').innerHTML = '<h2>✉ 이 시간에 보낸 쪽지</h2>' + notes.map(noteHtml).join('');
+  }
+  function noteHtml(n) {
+    return '<div class="note-item"><div class="meta">' +
+      new Date(n.ms).toLocaleString('ko-KR') + (n.read ? ' · 선생님이 확인했어요' : ' · 아직 안 읽음') +
+      '</div><div>' + esc(n.text) + '</div>' +
+      (n.reply ? '<div class="reply"><b>선생님:</b> ' + esc(n.reply) + '</div>' : '') + '</div>';
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    }).replace(/\n/g, '<br>');
+  }
+
+  async function sendNote() {
+    var t = $('noteText').value.trim();
+    if (!t) { msg('noteMsg', '내용을 적어 주세요.', 'err'); return; }
+    $('noteSend').disabled = true;
+    var r;
+    try {
+      r = await window.api('note', {
+        token: TOKEN, ymd: CUR ? CUR.ymd : '', perio: CUR ? CUR.perio : 0, text: t
+      });
+    } catch (e) { msg('noteMsg', e.message, 'err'); $('noteSend').disabled = false; return; }
+    $('noteSend').disabled = false;
+    if (r.error === 'auth') { logout(); return; }
+    if (r.error) { msg('noteMsg', errText(r), 'err'); return; }
+    $('noteText').value = '';
+    msg('noteMsg', '선생님께 보냈어요.', 'ok');
+    setTimeout(function () {
+      $('noteModal').classList.add('hide');
+      msg('noteMsg', '');
+      if (CUR) openEditor(CUR.ymd, CUR.perio);
+    }, 800);
+  }
+
+  async function openAllNotes() {
+    $('listBody').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+    $('listModal').classList.remove('hide');
+    var r;
+    try { r = await window.api('notes', { token: TOKEN }); }
+    catch (e) { $('listBody').innerHTML = '<div class="msg msg-err">' + esc(e.message) + '</div>'; return; }
+    if (r.error) { $('listBody').innerHTML = '<div class="msg msg-err">' + esc(errText(r)) + '</div>'; return; }
+    $('listBody').innerHTML = r.notes.length
+      ? r.notes.map(noteHtml).join('')
+      : '<p class="sub">아직 보낸 쪽지가 없어요.</p>';
+  }
+
+  /* ══════════ 이어 붙이기 ══════════ */
+  $('selG').addEventListener('change', fillClasses);
+  $('selC').addEventListener('change', fillNumbers);
+  $('selN').addEventListener('change', showMasked);
+  $('btnLogin').addEventListener('click', doLogin);
+  $('birth').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.yr'), function (b) {
+    b.addEventListener('click', function () {
+      // 값을 그 해 1월 1일로 두면 달력이 그 해로 열린다
+      $('birth').value = b.dataset.y + '-01-01';
+      $('birth').focus();
+    });
+  });
+
+  $('btnOut').addEventListener('click', function () {
+    if (confirm('나갈까요? 다음에 다시 번호와 생년월일로 들어와야 합니다.')) logout();
+  });
+  $('btnPrev').addEventListener('click', function () { moveMonth(-1); });
+  $('btnNext').addEventListener('click', function () { moveMonth(1); });
+  $('btnBack').addEventListener('click', function () { saveDraft(); openCalendar(YM); });
+  $('btnSave').addEventListener('click', doSave);
+  $('btnAllNotes').addEventListener('click', openAllNotes);
+  $('listClose').addEventListener('click', function () { $('listModal').classList.add('hide'); });
+
+  $('btnNote').addEventListener('click', function () {
+    msg('noteMsg', '');
+    $('noteModal').classList.remove('hide');
+    $('noteText').focus();
+  });
+  $('noteCancel').addEventListener('click', function () { $('noteModal').classList.add('hide'); });
+  $('noteSend').addEventListener('click', sendNote);
+
+  ['tLearned', 'tFelt', 'tNext'].forEach(function (id) {
+    $(id).addEventListener('input', function () {
+      counters();
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveDraft, 1200);
+    });
+  });
+  // 태블릿을 덮거나 탭을 옮길 때도 임시저장
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') saveDraft();
+  });
+
+  paintStars();
+  boot();
+})();
+</script>
+</body>
+</html>

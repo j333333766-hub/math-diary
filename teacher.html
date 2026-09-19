@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수학 일기 · 선생님</title>
+<meta name="description" content="수학 일기 제출 현황과 쪽지함 — 담당 교사용.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+  .wrap { max-width: 1100px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tabs button.on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+  .pick { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
+  .pick > div { min-width: 92px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 로그인 -->
+  <section id="tlogin">
+    <h1>수학 일기 · 선생님</h1>
+    <p class="sub">
+      학생 앱은 구글 로그인을 쓰지 않으므로(익명 배포) 이 화면은 비밀번호로 가립니다.
+      비밀번호는 편집기에서 <code>설치()</code> 를 실행할 때 로그에 찍힙니다.
+    </p>
+    <div class="card" style="max-width:420px">
+      <div class="field">
+        <label for="pw">비밀번호</label>
+        <input type="password" id="pw" autocomplete="current-password">
+      </div>
+      <div id="tlMsg" class="hide"></div>
+      <button class="btn-main" id="btnIn">들어가기</button>
+    </div>
+  </section>
+
+  <!-- 본 화면 -->
+  <section id="main" class="hide">
+    <div class="topbar">
+      <h1 style="margin:0">수학 일기 · 선생님</h1>
+      <button id="btnOut">나가기</button>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="grid" class="on">제출 현황</button>
+      <button data-tab="read">일기 읽기</button>
+      <button data-tab="notes">쪽지함 <span class="chip hide" id="unread">0</span></button>
+      <button data-tab="tools">내보내기 · 점검</button>
+    </div>
+
+    <!-- 제출 현황 -->
+    <div id="tab-grid" class="card">
+      <div class="pick">
+        <div><label for="gG">학년</label><select id="gG"></select></div>
+        <div><label for="gC">반</label><select id="gC"></select></div>
+        <div><label for="gY">달</label><input type="month" id="gY"></div>
+        <div><button class="btn-ghost" id="gGo">보기</button></div>
+      </div>
+      <div id="gridBody"><p class="sub">반과 달을 고르고 [보기] 를 누르세요.</p></div>
+    </div>
+
+    <!-- 일기 읽기 -->
+    <div id="tab-read" class="card hide">
+      <div class="pick">
+        <div><label for="rSlot">수업</label><select id="rSlot"></select></div>
+        <div><button class="btn-ghost" id="rGo">읽기</button></div>
+      </div>
+      <p class="sub" id="rHint">먼저 [제출 현황] 에서 반과 달을 고르면 수업 목록이 채워집니다.</p>
+      <div id="readBody"></div>
+    </div>
+
+    <!-- 쪽지함 -->
+    <div id="tab-notes" class="card hide">
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn-ghost" id="nAll">전체</button>
+        <button class="btn-ghost" id="nNew">안 읽은 것만</button>
+      </div>
+      <div id="notesBody"><p class="sub">불러오는 중…</p></div>
+    </div>
+
+    <!-- 내보내기 -->
+    <div id="tab-tools" class="card hide">
+      <h2 style="margin-top:0">CSV 내보내기</h2>
+      <div class="pick">
+        <div><label for="eG">학년</label><select id="eG"></select></div>
+        <div><label for="eC">반</label><select id="eC"><option value="">전체</option></select></div>
+        <div><label for="eF">부터</label><input type="date" id="eF"></div>
+        <div><label for="eT">까지</label><input type="date" id="eT"></div>
+        <div><button class="btn-ghost" id="eGo">내려받기</button></div>
+      </div>
+      <p class="sub">엑셀에서 바로 열립니다(BOM 붙임). 생활기록부에 옮길 때 쓰세요.</p>
+      <h2>점검</h2>
+      <button class="btn-ghost" id="chk">스프레드시트 상태 보기</button>
+      <pre id="chkBody" style="white-space:pre-wrap;font-size:.8rem;color:var(--ink-soft)"></pre>
+    </div>
+  </section>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var TOK = null, BOOT = null, GRID = null;
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    }).replace(/\n/g, '<br>');
+  }
+  function msg(el, t, k) {
+    var e = $(el);
+    if (!t) { e.className = 'hide'; e.textContent = ''; return; }
+    e.className = 'msg msg-' + (k || 'err');
+    e.textContent = t;
+  }
+  function errText(r) {
+    if (!r) return '알 수 없는 문제';
+    if (r.error === 'pw') return '비밀번호가 맞지 않습니다.' + (r.left ? ' (' + r.left + '번 남음)' : '');
+    if (r.error === 'locked') return (r.minutes || 10) + '분 동안 잠겼습니다.';
+    return window.ERRMSG[r.error] || ('문제가 생겼습니다. (' + r.error + ')');
+  }
+  function stars(n) { return n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '—'; }
+
+  async function boot() {
+    try { BOOT = await window.api('boot'); } catch (e) { msg('tlMsg', e.message); return; }
+    if (BOOT.error) { msg('tlMsg', errText(BOOT)); return; }
+    [['gG', 'gC'], ['eG', 'eC']].forEach(function (p) {
+      $(p[0]).innerHTML = BOOT.grades.map(function (g) {
+        return '<option value="' + g + '">' + g + '학년</option>';
+      }).join('');
+    });
+    fillCls('gG', 'gC', false);
+    fillCls('eG', 'eC', true);
+    $('gY').value = BOOT.today.slice(0, 4) + '-' + BOOT.today.slice(4, 6);
+    TOK = lsGet('md.ttoken');
+    if (TOK) enter();
+  }
+
+  function fillCls(gid, cid, withAll) {
+    var g = +$(gid).value;
+    var list = (BOOT.classes[g] || []).slice().sort(function (a, b) { return a - b; });
+    $(cid).innerHTML = (withAll ? '<option value="">전체</option>' : '') +
+      list.map(function (c) { return '<option value="' + c + '">' + c + '반</option>'; }).join('');
+  }
+
+  async function login() {
+    var r;
+    $('btnIn').disabled = true;
+    try { r = await window.api('tlogin', { pw: $('pw').value }); }
+    catch (e) { msg('tlMsg', e.message); $('btnIn').disabled = false; return; }
+    $('btnIn').disabled = false;
+    if (r.error) { msg('tlMsg', errText(r)); return; }
+    TOK = r.token;
+    lsSet('md.ttoken', TOK);
+    enter();
+  }
+
+  function enter() {
+    $('tlogin').classList.add('hide');
+    $('main').classList.remove('hide');
+    loadNotes(false);
+  }
+  function out() { lsDel('md.ttoken'); TOK = null; location.reload(); }
+
+  function tab(name) {
+    ['grid', 'read', 'notes', 'tools'].forEach(function (t) {
+      $('tab-' + t).classList.toggle('hide', t !== name);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+      b.classList.toggle('on', b.dataset.tab === name);
+    });
+  }
+
+  /* ── 제출 현황 ── */
+  async function loadGrid() {
+    var g = +$('gG').value, c = +$('gC').value;
+    var ym = ($('gY').value || '').replace('-', '');
+    if (!g || !c || ym.length !== 6) return;
+    $('gridBody').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+    var r;
+    try { r = await window.api('tgrid', { token: TOK, grade: g, cls: c, ym: ym }); }
+    catch (e) { $('gridBody').innerHTML = '<div class="msg msg-err">' + esc(e.message) + '</div>'; return; }
+    if (r.error === 'auth') { out(); return; }
+    if (r.error) { $('gridBody').innerHTML = '<div class="msg msg-err">' + esc(errText(r)) + '</div>'; return; }
+    GRID = { g: g, c: c, ym: ym, data: r };
+
+    if (!r.days.length) {
+      $('gridBody').innerHTML = '<p class="sub">이 달에는 ' + (BOOT.subject || '수학') + ' 수업이 없습니다.</p>';
+      $('rSlot').innerHTML = '';
+      return;
+    }
+    var starMap = {};
+    r.stars.forEach(function (s) { starMap[s.slot] = s; });
+
+    var h = '<div class="tgrid"><table class="g"><thead><tr><th>번호·이름</th>';
+    r.days.forEach(function (d) {
+      h += '<th>' + (+d.ymd.slice(4, 6)) + '/' + (+d.ymd.slice(6, 8)) +
+           '<br><small>' + d.perio + '교시</small></th>';
+    });
+    h += '<th>합</th></tr></thead><tbody>';
+    r.students.forEach(function (s) {
+      var cnt = 0;
+      h += '<tr><td class="nm">' + s.no + ' ' + esc(s.name) + '</td>';
+      r.days.forEach(function (d) {
+        var k = s.sid + '|' + d.ymd + '-' + d.perio;
+        var len = r.done[k];
+        if (len === undefined) h += '<td class="n">·</td>';
+        else { cnt++; h += '<td class="y" title="' + len + '자">' + (len > 0 ? len : '★') + '</td>'; }
+      });
+      h += '<td><b>' + cnt + '</b>/' + r.days.length + '</td></tr>';
+    });
+    // 별점 평균 줄
+    h += '<tr><td class="nm"><b>수업 별점(평균)</b></td>';
+    r.days.forEach(function (d) {
+      var s = starMap[d.ymd + '-' + d.perio];
+      h += '<td>' + (s && s.cls ? s.cls.toFixed(1) : '·') + '</td>';
+    });
+    h += '<td></td></tr><tr><td class="nm"><b>참여도(평균)</b></td>';
+    r.days.forEach(function (d) {
+      var s = starMap[d.ymd + '-' + d.perio];
+      h += '<td>' + (s && s.me ? s.me.toFixed(1) : '·') + '</td>';
+    });
+    h += '<td></td></tr></tbody></table></div>';
+    h += '<p class="sub" style="margin-top:10px">칸의 숫자는 쓴 글자 수입니다. ★ 는 별점만 고른 경우.</p>';
+    $('gridBody').innerHTML = h;
+
+    $('rSlot').innerHTML = r.days.map(function (d) {
+      return '<option value="' + d.ymd + '|' + d.perio + '">' +
+        (+d.ymd.slice(4, 6)) + '월 ' + (+d.ymd.slice(6, 8)) + '일 ' + d.perio + '교시</option>';
+    }).join('');
+    $('rHint').textContent = g + '학년 ' + c + '반 · ' + ym.slice(0, 4) + '년 ' +
+      (+ym.slice(4, 6)) + '월 수업 ' + r.days.length + '개';
+    if (r.unreadNotes) {
+      $('unread').textContent = r.unreadNotes;
+      $('unread').classList.remove('hide');
+    }
+  }
+
+  /* ── 일기 읽기 ── */
+  async function loadRead() {
+    if (!GRID || !$('rSlot').value) return;
+    var p = $('rSlot').value.split('|');
+    $('readBody').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+    var r;
+    try {
+      r = await window.api('tread', {
+        token: TOK, grade: GRID.g, cls: GRID.c, ymd: p[0], perio: +p[1]
+      });
+    } catch (e) { $('readBody').innerHTML = '<div class="msg msg-err">' + esc(e.message) + '</div>'; return; }
+    if (r.error === 'auth') { out(); return; }
+    if (r.error) { $('readBody').innerHTML = '<div class="msg msg-err">' + esc(errText(r)) + '</div>'; return; }
+    if (!r.entries.length) { $('readBody').innerHTML = '<p class="sub">아직 아무도 쓰지 않았습니다.</p>'; return; }
+    $('readBody').innerHTML = '<p class="sub">' + r.entries.length + '명</p>' +
+      r.entries.map(function (e) {
+        return '<div class="entry"><h4>' + e.no + ' ' + esc(e.name) +
+          ' <span class="chip">수업 ' + stars(e.starClass) + ' · 참여 ' + stars(e.starMe) + '</span></h4>' +
+          (e.learned ? '<p><span class="k">배운 내용</span><br>' + esc(e.learned) + '</p>' : '') +
+          (e.felt ? '<p><span class="k">느낀 점</span><br>' + esc(e.felt) + '</p>' : '') +
+          (e.next ? '<p><span class="k">앞으로</span><br>' + esc(e.next) + '</p>' : '') +
+          '</div>';
+      }).join('');
+  }
+
+  /* ── 쪽지함 ── */
+  async function loadNotes(onlyUnread) {
+    $('notesBody').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+    var r;
+    try { r = await window.api('tnotes', { token: TOK, onlyUnread: !!onlyUnread }); }
+    catch (e) { $('notesBody').innerHTML = '<div class="msg msg-err">' + esc(e.message) + '</div>'; return; }
+    if (r.error === 'auth') { out(); return; }
+    if (r.error) { $('notesBody').innerHTML = '<div class="msg msg-err">' + esc(errText(r)) + '</div>'; return; }
+    var unread = r.notes.filter(function (n) { return !n.read; }).length;
+    if (unread) { $('unread').textContent = unread; $('unread').classList.remove('hide'); }
+    else $('unread').classList.add('hide');
+    if (!r.notes.length) { $('notesBody').innerHTML = '<p class="sub">쪽지가 없습니다.</p>'; return; }
+    $('notesBody').innerHTML = r.notes.map(function (n) {
+      return '<div class="note-item" data-id="' + esc(n.id) + '">' +
+        '<div class="meta">' + n.g + '-' + n.c + '-' + n.n + ' ' + esc(n.name) + ' · ' +
+        new Date(n.ms).toLocaleString('ko-KR') +
+        (n.ymd ? ' · ' + (+n.ymd.slice(4, 6)) + '/' + (+n.ymd.slice(6, 8)) +
+          (n.perio ? ' ' + n.perio + '교시' : '') : '') +
+        (n.read ? '' : ' <b style="color:var(--warn)">새 쪽지</b>') + '</div>' +
+        '<div style="margin:4px 0 8px">' + esc(n.text) + '</div>' +
+        (n.reply ? '<div class="reply"><b>보낸 답장:</b> ' + esc(n.reply) + '</div>' : '') +
+        '<div class="btn-row"><input type="text" class="rp" placeholder="답장(비워 두고 눌러도 읽음 처리됩니다)" style="flex:1">' +
+        '<button class="btn-ghost send">보내기</button></div></div>';
+    }).join('');
+    Array.prototype.forEach.call($('notesBody').querySelectorAll('.send'), function (b) {
+      b.addEventListener('click', async function () {
+        var box = b.closest('.note-item');
+        b.disabled = true;
+        var r2 = await window.api('treply', {
+          token: TOK, id: box.dataset.id, reply: box.querySelector('.rp').value
+        });
+        b.disabled = false;
+        if (r2 && r2.ok) loadNotes(onlyUnread);
+        else alert(errText(r2));
+      });
+    });
+  }
+
+  /* ── 내보내기 · 점검 ── */
+  function exportCsv() {
+    var q = ['act=csv', 'tok=' + encodeURIComponent(TOK)];
+    if ($('eG').value) q.push('grade=' + $('eG').value);
+    if ($('eC').value) q.push('cls=' + $('eC').value);
+    if ($('eF').value) q.push('from=' + $('eF').value.replace(/-/g, ''));
+    if ($('eT').value) q.push('to=' + $('eT').value.replace(/-/g, ''));
+    window.open(window.ENDPOINT + '?' + q.join('&'), '_blank');
+  }
+
+  async function check() {
+    $('chkBody').textContent = '확인 중…';
+    var r = await window.api('tsheets', { token: TOK });
+    $('chkBody').textContent = JSON.stringify(r, null, 2);
+  }
+
+  /* ── 이어 붙이기 ── */
+  $('btnIn').addEventListener('click', login);
+  $('pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+  $('btnOut').addEventListener('click', out);
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+    b.addEventListener('click', function () { tab(b.dataset.tab); });
+  });
+  $('gG').addEventListener('change', function () { fillCls('gG', 'gC', false); });
+  $('eG').addEventListener('change', function () { fillCls('eG', 'eC', true); });
+  $('gGo').addEventListener('click', loadGrid);
+  $('rGo').addEventListener('click', loadRead);
+  $('nAll').addEventListener('click', function () { loadNotes(false); });
+  $('nNew').addEventListener('click', function () { loadNotes(true); });
+  $('eGo').addEventListener('click', exportCsv);
+  $('chk').addEventListener('click', check);
+
+  boot();
+})();
+</script>
+</body>
+</html>
