@@ -48,7 +48,13 @@
 
 * { box-sizing: border-box; }
 
-html, body { margin: 0; padding: 0; overflow-x: hidden; }
+/* 가로 넘침 차단은 html 에만 건다.
+ * body 에 overflow-x 를 주면 **body 가 자기 스크롤 상자**가 되고(overflow-y 가 auto 로 계산됨),
+ * 스크롤 여지가 0 인 상태에서 overscroll-behavior:contain 까지 걸리면
+ * **휠이 바깥(문서)으로 넘어가지 못해 마우스 휠 스크롤이 통째로 먹통이 된다.**
+ * (2026-09-19 교사 화면에서 실제로 겪음 — 프로그램 스크롤은 되는데 휠만 안 되는 증상) */
+html { overflow-x: hidden; }
+html, body { margin: 0; padding: 0; }
 
 body {
   background: var(--bg);
@@ -58,7 +64,6 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior-y: contain;
 }
 
 .wrap {
@@ -318,6 +323,44 @@ textarea { min-height: 92px; resize: vertical; line-height: 1.65; }
   background: var(--brand-soft); border-radius: 5px; padding: 1px 6px; margin-right: 5px;
 }
 
+/* ── 교사 화면 ── */
+.wrap.wide { max-width: 1040px; }
+.muted { color: var(--ink-faint); font-weight: 400; font-size: .8rem; }
+
+.mon {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: 4px 0 14px;
+}
+.mon b { font-size: 1.1rem; min-width: 8.5em; text-align: center; }
+
+/* 누르면 파고드는 줄 카드 */
+.rowcard {
+  display: grid; width: 100%; text-align: left; margin-bottom: 7px;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: "name bar val go" "sub sub sub go";
+  align-items: center; gap: 4px 10px; padding: 11px 13px;
+}
+.rowcard:hover { background: var(--brand-soft); border-color: var(--brand); }
+.rc-name { grid-area: name; font-weight: 800; white-space: nowrap; }
+.rc-bar {
+  grid-area: bar; height: 9px; background: var(--line);
+  border-radius: 99px; overflow: hidden; min-width: 60px;
+}
+.rc-bar i { display: block; height: 100%; background: var(--good); border-radius: 99px; }
+.rc-val { grid-area: val; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rc-sub { grid-area: sub; font-size: .76rem; color: var(--ink-soft); }
+.rc-go { grid-area: go; color: var(--ink-faint); font-size: 1.3rem; line-height: 1; }
+.rc-peek {
+  grid-area: bar; font-size: .8rem; color: var(--ink-soft);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.rec-row { grid-template-areas: "name bar go" "sub sub go"; grid-template-columns: auto 1fr auto; }
+
+.tile.warn b { color: var(--warn); }
+
+.pick { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+.pick > div { min-width: 110px; }
+
 /* ── 교사 화면 격자 ── */
 .tgrid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.g { border-collapse: collapse; font-size: .78rem; }
@@ -325,7 +368,17 @@ table.g th, table.g td {
   border: 1px solid var(--line); padding: 4px 6px; text-align: center; white-space: nowrap;
 }
 table.g th { background: var(--bg); position: sticky; top: 0; }
-table.g td.nm { text-align: left; position: sticky; left: 0; background: var(--card); }
+table.g td.nm { text-align: left; position: sticky; left: 0; background: var(--card); padding: 0; }
+table.g tr.foot td { background: var(--bg); font-size: .74rem; color: var(--ink-soft); }
+table.g tr.foot td.nm { font-weight: 700; padding: 4px 6px; }
+.hbtn, .sbtn {
+  border: none; background: none; color: var(--brand-ink); font: inherit;
+  font-size: .76rem; font-weight: 700; padding: 5px 7px; min-height: 0;
+  width: 100%; text-align: left; border-radius: 6px; white-space: nowrap;
+}
+.hbtn { text-align: center; }
+.hbtn small, .sbtn small { font-weight: 500; color: var(--ink-soft); }
+.hbtn:hover, .sbtn:hover { background: var(--brand-soft); }
 td.y { background: var(--good-soft); color: var(--good); font-weight: 700; }
 td.n { color: var(--ink-faint); }
 .chip {
