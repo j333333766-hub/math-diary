@@ -75,7 +75,7 @@
       <div class="legend">
         <span><i class="dot" style="background:var(--brand-soft);border:1px solid var(--brand)"></i> 쓸 수 있어요</span>
         <span><i class="dot" style="background:var(--good)"></i> 다 썼어요</span>
-        <span><i class="dot" style="background:transparent;border:1px dashed var(--line)"></i> 기간이 지났어요</span>
+        <span><i class="dot" style="background:transparent;border:1px dashed var(--line)"></i> 수업 전 · 기간 지남</span>
       </div>
       <div id="calMsg" class="hide"></div>
     </div>
@@ -354,7 +354,8 @@
       html += '<div class="' + cls + '"><div class="dnum">' + d + '</div>';
       (byDay[ymd] || []).forEach(function (s) {
         var k = s.done ? 'done' : (s.editable ? '' : 'locked');
-        var tag = s.done ? '다 썼어요' : (s.editable ? '쓰기' : '기간 지남');
+        var tag = s.done ? '다 썼어요'
+          : (s.editable ? '쓰기' : (s.ymd > MONTH.today ? '수업 전' : '기간 지남'));
         var star = s.done && s.starClass ? ' ' + '★'.repeat(s.starClass) : '';
         html += '<button class="slot ' + k + '" data-ymd="' + s.ymd + '" data-perio="' + s.perio + '"' +
                 (s.editable || s.done ? '' : ' disabled') + '>' +
@@ -428,7 +429,9 @@
     });
     $('edLocked').classList.toggle('hide', !lock);
     if (lock) {
-      $('edLocked').textContent = '작성 기간이 지나 읽기만 할 수 있습니다.';
+      $('edLocked').textContent = (ymd > (MONTH ? MONTH.today : ''))
+        ? '아직 수업 전이라 쓸 수 없어요. 수업이 끝난 뒤에 와 주세요.'
+        : '작성 기간이 지나 읽기만 할 수 있습니다.';
     }
 
     renderMyNotes(r.notes);
